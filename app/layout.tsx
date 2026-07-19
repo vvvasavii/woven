@@ -1,3 +1,5 @@
+import {ClerkProvider} from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -29,7 +31,291 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <ClerkProvider 
+          appearance={{
+            theme: shadcn,
+            elements: {
+              rootBox: {
+                color: "var(--foreground)",
+              },
+              card: {
+                background: "var(--popover)",
+                color: "var(--foreground)",
+              },
+              headerTitle: {
+                color: "var(--foreground)",
+                fontWeight: "600",
+              },
+              headerSubtitle: {
+                color: "var(--muted-foreground)",
+              },
+              socialButtonsBlock: {
+                color: "var(--foreground)",
+              },
+              socialButtonsBlockButton: {
+                color: "var(--foreground)",
+              },
+              dividerText: {
+                color: "var(--muted-foreground)",
+              },
+              formFieldLabel: {
+                color: "var(--foreground)",
+                fontWeight: "500",
+              },
+              formFieldInput: {
+                background: "var(--background)",
+                color: "var(--foreground)",
+                borderColor: "var(--border)",
+              },
+              // Override form fields in dark contexts (like delete account modal)
+              formFieldLabelDark: {
+                color: "var(--primary-foreground)",
+                fontWeight: "600",
+              },
+              formFieldInputDark: {
+                background: "var(--sidebar-accent)",
+                color: "var(--primary-foreground)",
+                borderColor: "var(--sidebar-border)",
+              },
+              formFieldInputFocus: {
+                borderColor: "var(--primary)",
+                boxShadow: "0 0 0 2px var(--ring)",
+              },
+              formFieldWarningText: {
+                color: "var(--destructive)",
+              },
+              footerActionLink: {
+                color: "var(--primary)",
+                fontWeight: "500",
+              },
+              footerActionText: {
+                color: "var(--muted-foreground)",
+              },
+              formButtonPrimary: {
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
+                fontWeight: "500",
+              },
+              formButtonPrimaryHover: {
+                background: "var(--primary)",
+                opacity: "0.9",
+              },
+              identityPreview: {
+                color: "var(--foreground)",
+              },
+              identityPreviewText: {
+                color: "var(--foreground)",
+              },
+              identityPreviewEditButton: {
+                color: "var(--primary)",
+              },
+              navbar: {
+                background: "var(--sidebar)",
+                borderColor: "var(--sidebar-border)",
+              },
+              navbarRow: {
+                color: "var(--sidebar-foreground)",
+              },
+              navbarRowAction: {
+                color: "var(--sidebar-foreground)",
+              },
+              scrollBox: {
+                borderColor: "var(--sidebar-border)",
+              },
+              accountPreview: {
+                color: "var(--sidebar-foreground)",
+              },
+              accountPreviewAvatar: {
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
+              },
+              accountPreviewText: {
+                color: "var(--sidebar-foreground)",
+              },
+              accountPreviewAction: {
+                color: "var(--sidebar-foreground)",
+              },
+              userButtonPopoverCard: {
+                background: "var(--sidebar)",
+                color: "var(--sidebar-foreground)",
+              },
+              userButtonPopoverActionButton: {
+                color: "var(--sidebar-foreground)",
+              },
+              userButtonPopoverActionButtonText: {
+                color: "var(--sidebar-foreground)",
+              },
+              userButtonPopoverFooter: {
+                color: "var(--sidebar-foreground)",
+              },
+              badge: {
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
+              },
+              // Account page elements
+              profilePage: {
+                color: "var(--sidebar-foreground)",
+              },
+              profileSection: {
+                color: "var(--sidebar-foreground)",
+              },
+              profileSectionTitle: {
+                color: "var(--primary-foreground)",
+                fontWeight: "700",
+              },
+              profileSectionButton: {
+                color: "var(--sidebar-foreground)",
+                background: "var(--sidebar-accent)",
+              },
+              profileSectionButtonText: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Section headings (Security, Profile details)
+              pageHeaderTitle: {
+                color: "var(--primary-foreground)",
+                fontWeight: "700",
+                fontSize: "1.5rem",
+              },
+              pageHeaderSubtitle: {
+                color: "var(--sidebar-foreground)",
+              },
+              // For "Update profile" and "Add email address" - remove orange-ish text
+              navbarButton: {
+                color: "var(--sidebar-foreground)",
+              },
+              navbarButtonText: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Button text in profile sections
+              button: {
+                color: "var(--sidebar-foreground)",
+              },
+              buttonText: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Link text (remove orange)
+              link: {
+                color: "var(--sidebar-foreground)",
+              },
+              linkText: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Three dots menu icons
+              menuButton: {
+                color: "var(--sidebar-foreground)",
+              },
+              menuButtonIcon: {
+                color: "var(--sidebar-foreground)",
+              },
+              actionButton: {
+                color: "var(--sidebar-foreground)",
+              },
+              actionButtonIcon: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Right-hand side options
+              userButtonPopoverAction: {
+                color: "var(--sidebar-foreground)",
+              },
+              userButtonPopoverActionText: {
+                color: "var(--sidebar-foreground)",
+              },
+              // Delete account - white text, red background, dramatic hover effect
+              userButtonPopoverActionDanger: {
+                color: "var(--primary-foreground)",
+                background: "var(--destructive)",
+                border: "2px solid var(--destructive)",
+                fontWeight: "700",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  background: "hsl(4 70% 36%)",
+                  borderColor: "hsl(4 70% 26%)",
+                  transform: "scale(1.02)",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                },
+              },
+              userButtonPopoverActionDangerText: {
+                color: "var(--destructive)",
+                fontWeight: "700",
+              },
+              // Delete account confirmation dialog - all text must be high contrast
+              modalCard: {
+                background: "var(--sidebar)",
+                color: "var(--primary-foreground)",
+              },
+              modalTitle: {
+                color: "var(--primary-foreground)",
+                fontWeight: "700",
+              },
+              modalText: {
+                color: "var(--primary-foreground)",
+              },
+              modalDescription: {
+                color: "var(--primary-foreground)",
+              },
+              alertText: {
+                color: "var(--primary-foreground)",
+              },
+              alertDescription: {
+                color: "var(--primary-foreground)",
+              },
+              // Delete account confirmation dialog form fields
+              modalFormFieldLabel: {
+                color: "var(--primary-foreground)",
+                fontWeight: "600",
+              },
+              modalFormFieldInput: {
+                background: "var(--sidebar-accent)",
+                color: "var(--primary-foreground)",
+                borderColor: "var(--sidebar-border)",
+              },
+              // Delete account trigger button on main page - ensure red background
+              userButtonPopoverActionDanger: {
+                color: "var(--primary-foreground)",
+                background: "var(--destructive)",
+                border: "2px solid var(--destructive)",
+                fontWeight: "700",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  background: "hsl(4 70% 36%)",
+                  borderColor: "hsl(4 70% 26%)",
+                  transform: "scale(1.02)",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                },
+              },
+              // Additional targeting for delete account button
+              actionButtonDanger: {
+                color: "var(--primary-foreground)",
+                background: "var(--destructive)",
+                fontWeight: "700",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  background: "hsl(4 70% 36%)",
+                  borderColor: "hsl(4 70% 26%)",
+                  transform: "scale(1.02)",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                },
+              },
+              // Tabs
+              tabs: {
+                color: "var(--sidebar-foreground)",
+              },
+              tabsList: {
+                background: "var(--sidebar-accent)",
+                borderColor: "var(--sidebar-border)",
+              },
+              tabsTrigger: {
+                color: "var(--sidebar-foreground)",
+              },
+              tabsTriggerActive: {
+                color: "var(--primary-foreground)",
+                background: "var(--primary)",
+              },
+            },
+          }}
+        >
+          <AppShell>{children}</AppShell>
+        </ClerkProvider>
       </body>
     </html>
   );

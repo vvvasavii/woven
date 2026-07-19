@@ -1,8 +1,11 @@
 "use client";
 
-import { Search, Sun, Moon, User } from "lucide-react";
+import { Search, Sun, Moon } from "lucide-react";
+import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 
 export function TopNav() {
+  const { isSignedIn } = useAuth();
+
   return (
     <header className="sticky top-0 z-30 h-16 bg-surface border-b border-border flex items-center justify-between px-6">
       {/* Search Bar */}
@@ -30,15 +33,23 @@ export function TopNav() {
           <Moon className="h-5 w-5 hidden dark:block" />
         </button>
 
-        {/* User Avatar Placeholder */}
-        <button
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-hover transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-surface"
-          // TODO: Implement user menu when authentication is integrated
-        >
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-            <User className="h-4 w-4 text-primary-foreground" />
+        {/* Auth Controls */}
+        {!isSignedIn ? (
+          <div className="flex items-center gap-2">
+            <SignInButton mode="modal">
+              <button className="px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-hover rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-surface">
+                Sign In
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-surface">
+                Sign Up
+              </button>
+            </SignUpButton>
           </div>
-        </button>
+        ) : (
+          <UserButton afterSignOutUrl="/" />
+        )}
       </div>
     </header>
   );

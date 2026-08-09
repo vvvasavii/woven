@@ -1,6 +1,4 @@
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { StatCard } from "@/components/dashboard/StatCard";
-import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { Plus, Search, Bookmark as BookmarkIcon, LayoutDashboard, Heart, FolderKanban } from "lucide-react";
 import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 
@@ -34,6 +32,20 @@ const placeholderBookmarks = [
     collection: "Design",
     isFavorite: false,
   },
+  {
+    id: "5",
+    title: "State Management Patterns",
+    domain: "dev.to",
+    collection: "React",
+    isFavorite: false,
+  },
+  {
+    id: "6",
+    title: "Color Theory for Developers",
+    domain: "smashingmagazine.com",
+    collection: "Design",
+    isFavorite: true,
+  },
 ];
 
 // TODO: Replace with actual data from backend
@@ -56,44 +68,66 @@ const placeholderCollections = [
     count: 12,
     description: "UI/UX patterns and design systems",
   },
+  {
+    id: "4",
+    name: "System Design",
+    count: 8,
+    description: "Architecture and scalability concepts",
+  },
 ];
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
-      {/* Welcome Header */}
-      <DashboardHeader
-        greeting="Good afternoon"
-        title="Welcome back to Woven."
-        subtitle="Your personal knowledge library is ready."
-      />
+    <div className="space-y-10">
+      {/* Library Header */}
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold text-foreground mb-2">Your library</h1>
+          <p className="text-lg text-muted-foreground">54 resources across 8 collections</p>
+        </div>
+        
+        {/* Compact Statistics */}
+        <div className="flex flex-wrap items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Bookmarks:</span>
+            <span className="font-medium text-foreground">54</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <FolderKanban className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Collections:</span>
+            <span className="font-medium text-foreground">8</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Heart className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Favorites:</span>
+            <span className="font-medium text-foreground">12</span>
+          </div>
+        </div>
 
-      {/* Statistics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          label="Total Bookmarks"
-          value="54"
-          description="Across all collections"
-        />
-        <StatCard
-          label="Collections"
-          value="8"
-          description="Organized by topic"
-        />
-        <StatCard
-          label="Favorites"
-          value="12"
-          description="Quick access items"
-        />
+        {/* Quick Actions */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+            <Plus className="h-4 w-4" />
+            Create Collection
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+            <BookmarkIcon className="h-4 w-4" />
+            Save Bookmark
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+            <Search className="h-4 w-4" />
+            Search Resources
+          </button>
+        </div>
       </div>
 
-      {/* Recent Bookmarks */}
-      <section>
-        <SectionHeader
-          title="Recent Bookmarks"
-          subtitle="Your latest additions"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Recent Bookmarks - Primary Content */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Recently saved</h2>
+        </div>
+        <div className="space-y-3">
           {placeholderBookmarks.map((bookmark) => (
             <BookmarkCard
               key={bookmark.id}
@@ -106,13 +140,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Collections Preview */}
-      <section>
-        <SectionHeader
-          title="Collections"
-          subtitle="Browse your organized knowledge"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Collections - Secondary */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Collections</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {placeholderCollections.map((collection) => (
             <CollectionCard
               key={collection.id}

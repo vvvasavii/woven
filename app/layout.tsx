@@ -114,39 +114,39 @@ export default function RootLayout({
                 borderColor: "var(--sidebar-border)",
               },
               navbarRow: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               navbarRowAction: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               scrollBox: {
                 borderColor: "var(--sidebar-border)",
               },
               accountPreview: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               accountPreviewAvatar: {
                 background: "var(--primary)",
                 color: "var(--primary-foreground)",
               },
               accountPreviewText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               accountPreviewAction: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               userButtonPopoverCard: {
                 background: "var(--sidebar)",
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               userButtonPopoverActionButton: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               userButtonPopoverActionButtonText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               userButtonPopoverFooter: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               badge: {
                 background: "var(--primary)",
@@ -154,21 +154,21 @@ export default function RootLayout({
               },
               // Account page elements
               profilePage: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               profileSection: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               profileSectionTitle: {
                 color: "var(--primary-foreground)",
                 fontWeight: "700",
               },
               profileSectionButton: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
                 background: "var(--sidebar-accent)",
               },
               profileSectionButtonText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Section headings (Security, Profile details)
               pageHeaderTitle: {
@@ -177,48 +177,48 @@ export default function RootLayout({
                 fontSize: "1.5rem",
               },
               pageHeaderSubtitle: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // For "Update profile" and "Add email address" - remove orange-ish text
               navbarButton: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               navbarButtonText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Button text in profile sections
               button: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               buttonText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Link text (remove orange)
               link: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               linkText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Three dots menu icons
               menuButton: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               menuButtonIcon: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               actionButton: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               actionButtonIcon: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Right-hand side options
               userButtonPopoverAction: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               userButtonPopoverActionText: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               // Delete account - white text, red background, dramatic hover effect
               userButtonPopoverActionDanger: {
@@ -298,14 +298,14 @@ export default function RootLayout({
               },
               // Tabs
               tabs: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               tabsList: {
                 background: "var(--sidebar-accent)",
                 borderColor: "var(--sidebar-border)",
               },
               tabsTrigger: {
-                color: "var(--sidebar-foreground)",
+                color: "var(--primary-foreground)",
               },
               tabsTriggerActive: {
                 color: "var(--primary-foreground)",

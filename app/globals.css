@@ -62,7 +62,7 @@
 
   /* Cards match the active sidebar accent */
   --primary: hsl(18 42% 43%);
-  --primary-foreground: hsl(40 40% 97%);
+  --primary-foreground: hsl(40 40% 99%);
 
   /* Card hierarchy - Dark rust for stat cards */
   --card: hsl(17, 49%, 29%);
@@ -99,11 +99,11 @@
 
   /* Sidebar */
   --sidebar: hsl(22 20% 13%);
-  --sidebar-foreground: hsl(40 30% 93%);
+  --sidebar-foreground: hsl(40 30% 99%);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: white;
   --sidebar-accent: hsl(22 16% 22%);
-  --sidebar-accent-foreground: hsl(40 30% 93%);
+  --sidebar-accent-foreground: hsl(40 30% 99%);
   --sidebar-border: hsl(22 14% 24%);
   --sidebar-ring: var(--primary);
 
@@ -115,7 +115,7 @@
   --foreground: hsl(38 24% 91%);
 
   --primary: hsl(20 44% 58%);
-  --primary-foreground: white;
+  --primary-foreground: hsl(40 40% 99%);
 
   --card: hsl(20 24% 24%);
   --card-foreground: hsl(38 24% 91%);

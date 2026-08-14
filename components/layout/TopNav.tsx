@@ -48,7 +48,7 @@ export function TopNav() {
             </SignUpButton>
           </div>
         ) : (
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         )}
       </div>
     </header>

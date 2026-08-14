@@ -269,20 +269,7 @@ export default function RootLayout({
                 color: "var(--primary-foreground)",
                 borderColor: "var(--sidebar-border)",
               },
-              // Delete account trigger button on main page - ensure red background
-              userButtonPopoverActionDanger: {
-                color: "var(--primary-foreground)",
-                background: "var(--destructive)",
-                border: "2px solid var(--destructive)",
-                fontWeight: "700",
-                transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  background: "hsl(4 70% 36%)",
-                  borderColor: "hsl(4 70% 26%)",
-                  transform: "scale(1.02)",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-                },
-              },
+        
               // Additional targeting for delete account button
               actionButtonDanger: {
                 color: "var(--primary-foreground)",

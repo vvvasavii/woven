@@ -11,7 +11,7 @@ const updateCollectionSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }  //params contains the dynamic part of the URL. eg for /api/collections/abc123, params.id will be abc123
+  { params }: { params: Promise<{ id: string }> }  //params contains the dynamic part of the URL. eg for /api/collections/abc123, params.id will be abc123 //promise promises that the we will eventually get the params object, which contains the dynamic part of the URL. it makes us wait for the params to be resolved before we can use it. this is important because we need the id to update the correct collection.
 ) {
   try {
     const user = await getOrCreateUser();
@@ -85,11 +85,7 @@ export async function PATCH(
 // → GET: fetch all collections for the current user.
 // → POST: create a new collection.
 //
-// /api/collections/[id]
-// → Refers to one specific collection.
-// → GET: fetch one collection by ID.
-// → PATCH: update one collection by ID.
-// → DELETE: delete one collection by ID.
+
 //
 // IMPORTANT:
 // The [id] is the RESOURCE ID, not the user's ID.
@@ -102,3 +98,163 @@ export async function PATCH(
 //
 // PATCH/PUT do NOT automatically require dynamic URLs.
 // The URL depends on whether we are targeting one specific resource.
+
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getOrCreateUser();
+    const { id } = await params;
+
+    const collection = await prisma.collection.deleteMany({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (collection.count === 0) {
+      return NextResponse.json(
+        { error: "Collection not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Collection deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Failed to delete collection" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE + DYNAMIC URL NOTE:
+//
+// DELETE /api/collections/:id
+//
+// We use a dynamic URL because we are deleting ONE specific collection.
+// The [id] identifies which collection the request is targeting.
+//
+// Example:
+//
+// DELETE /api/collections/abc123
+//
+// Here:
+// - /api/collections = the collection resource
+// - abc123 = the ID of the specific collection we want to delete
+//
+// The [id] does NOT mean we are deleting only part of a collection.
+// The entire collection record is deleted.
+//
+// The HTTP method tells us WHAT operation we are performing,
+// while the dynamic ID tells us WHICH resource we are performing it on.
+//
+// /api/collections
+// → Collection resource as a whole
+//
+// POST /api/collections
+// → Create a new collection
+//
+// GET /api/collections
+// → Get all collections belonging to the current user
+//
+// /api/collections/:id
+// → One specific collection
+//
+// PATCH /api/collections/:id
+// → Update that specific collection
+//
+// DELETE /api/collections/:id
+// → Delete that specific collection
+//
+//
+// IMPORTANT:
+//
+// The ID in the URL is the COLLECTION ID, not the USER ID.
+//
+// The current user is identified through Clerk authentication.
+// We use both values when modifying or deleting a collection:
+//
+// id: requested collection ID
+// userId: authenticated user's ID
+//
+// This prevents a user from modifying or deleting another user's collection.
+//
+// In other words:
+//
+// Clerk authentication
+//        ↓
+// identifies the current user
+//
+// Dynamic URL [id]
+//        ↓
+// identifies the target collection
+//
+// id + userId
+//        ↓
+// ensures the target collection belongs to the current user
+//
+//
+// DELETE + MANY-TO-MANY RELATIONSHIP:
+//
+// A collection can contain many bookmarks,
+// and a bookmark can belong to many collections.
+//
+// Therefore, deleting a collection should NOT delete the bookmarks.
+//
+// Our Prisma schema uses:
+//
+// onDelete: Cascade
+//
+// on the Collection → BookmarkCollection relationship.
+//
+// So when a collection is deleted:
+//
+// Collection
+//     ↓
+// deleted
+//
+// BookmarkCollection relationships
+//     ↓
+// deleted automatically
+//
+// Bookmark records
+//     ↓
+// remain in the database
+//
+// This is important because the same bookmark may still belong
+// to other collections.
+//
+// Example:
+//
+// Bookmark: React Documentation
+// Collections: React, Frontend, Interview Prep
+//
+// If the React collection is deleted:
+//
+// React collection
+//     ↓
+// deleted
+//
+// React ↔ React Documentation relationship
+//     ↓
+// deleted
+//
+// React Documentation bookmark
+//     ↓
+// remains because it can still belong to Frontend and Interview Prep.

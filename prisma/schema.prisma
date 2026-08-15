@@ -15,6 +15,7 @@ model User {
   createdAt DateTime     @default(now())
 
   collections Collection[]
+  bookmarks  Bookmark[]
 }
 
 model Collection {
@@ -40,6 +41,9 @@ model Bookmark {
   notes        String?
   favorite     Boolean    @default(false)
   createdAt    DateTime   @default(now())
+
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   collections BookmarkCollection[]
 }

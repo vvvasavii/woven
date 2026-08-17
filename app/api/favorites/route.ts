@@ -2,14 +2,35 @@ import { NextResponse } from "next/server";
 import { getOrCreateUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getOrCreateUser();
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("q");
 
     const favorites = await prisma.bookmark.findMany({
       where: {
         userId: user.id,
         favorite: true,
+        ...(search  // Add the search conditions only when a search term exists.
+          ? {
+              OR: [
+                {
+                  title: { // Match the search term against the bookmark title.
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  notes: { // Match the search term against the bookmark's My Notes.
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {}),
       },
       include: {
         collections: {
@@ -87,3 +108,22 @@ export async function GET() {
 //
 // The endpoint includes the bookmark's collections so the response has the
 // same related collection information as GET /api/bookmarks.
+
+// GET /api/favorites optionally searches the user's favorite bookmarks.
+//
+// ?q=react searches bookmark title and My Notes.
+// Search is case-insensitive.
+//
+// userId: user.id ensures only the authenticated user's bookmarks are returned.
+// favorite: true ensures only favorite bookmarks are searched.
+//
+// title OR notes means a bookmark matches if the search term exists
+// in either its title or My Notes.
+//
+// If no ?q is provided, all favorite bookmarks are returned.
+
+// The include block retrieves each bookmark's collection relationships.
+// A bookmark can belong to multiple collections through BookmarkCollection.
+//
+// collections → gets the bookmark's collection relationships.
+// collection → gets the actual Collection record for each relationship.

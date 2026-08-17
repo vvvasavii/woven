@@ -53,7 +53,11 @@ export async function POST(request: Request) {
           })),
         },
       },
-      include: {
+      include: {  // Collections and Bookmarks have a many-to-many relationship.
+// We include collections when returning bookmarks because we want to show
+// which collections each bookmark belongs to.
+// We don't include bookmarks when returning collections because this query
+// only needs to return the matching collections.
         collections: {
           include: {
             collection: true,
@@ -236,13 +240,34 @@ export async function POST(request: Request) {
 // → ensures every requested collection exists and belongs to the user.
 
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getOrCreateUser();
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("q");
 
     const bookmarks = await prisma.bookmark.findMany({
       where: {
         userId: user.id,
+        ...(search
+          ? {
+              OR: [
+                {
+                  title: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  notes: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {}),
       },
       include: {
         collections: {
@@ -273,3 +298,69 @@ export async function GET() {
     );
   }
 }
+
+// GET retrieves bookmarks belonging to the currently authenticated user.
+// It now optionally supports searching through the bookmark title and My Notes
+// using the ?q=searchTerm query parameter.
+//
+// getOrCreateUser() identifies the authenticated user and gives us the corresponding
+// database User, including their database ID.
+
+
+// We read the optional search query from the request URL.
+// For example:
+// /api/bookmarks?q=react
+// gives us search = "react".
+//
+// If no ?q parameter is provided, search is null and all of the user's bookmarks
+// are retrieved.
+
+
+// Prisma searches the Bookmark table using the user's database ID.
+// The userId filter is important because it ensures we only retrieve this user's
+// bookmarks rather than returning bookmarks belonging to other users.
+
+
+// If a search term exists, Prisma additionally searches two fields:
+// 1. title
+// 2. notes
+//
+// The OR condition means a bookmark matches if the search term appears in either
+// its title OR its My Notes.
+//
+// For example, searching "hooks" will still find a bookmark if "hooks" appears
+// only inside My Notes.
+//
+// contains performs a partial text match, while mode: "insensitive" makes the
+// search case-insensitive.
+// Therefore "react", "React", and "REACT" produce the same matching results.
+
+
+// The search filter is added only when a search term exists.
+// This means the same endpoint supports both:
+//
+// GET /api/bookmarks
+// → retrieves all of the user's bookmarks.
+//
+// GET /api/bookmarks?q=react
+// → retrieves only the user's bookmarks whose title or My Notes contain "react".
+
+
+// The include block retrieves the bookmark's collection relationships.
+// Each bookmark can belong to multiple collections through the
+// BookmarkCollection join table.
+//
+// The search does not change this relationship data.
+// It only determines which bookmarks are returned.
+
+
+// orderBy sorts the results by createdAt in descending order,
+// so the newest bookmarks appear first.
+
+
+// NextResponse.json() sends the bookmarks back to the client as a JSON response.
+
+
+// The catch block handles different types of failures:
+// authentication failures return 401,
+// and unexpected server errors return 500.

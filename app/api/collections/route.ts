@@ -10,13 +10,24 @@ const createCollectionSchema = z.object({
   coverImage: z.string().url().optional(),
 });
 
-export async function GET() {
+export async function GET(request: Request) { //We need the request so we can read ?q=.(serach query)
   try {
     const user = await getOrCreateUser();
+
+    const { searchParams } = new URL(request.url);  //extrasting the serach term
+    const search = searchParams.get("q");
 
     const collections = await prisma.collection.findMany({
       where: {
         userId: user.id,
+        ...(search
+          ? {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            }
+          : {}),
       },
       orderBy: {
         createdAt: "desc",
@@ -40,18 +51,48 @@ export async function GET() {
     );
   }
 }
+// GET retrieves collections belonging to the currently authenticated user.
+// It now optionally supports searching through the collection name using ?q=searchTerm.
+//
+// getOrCreateUser() identifies the authenticated user and gives us the corresponding
+// database User, including their database ID.
 
-// GET retrieves all collections belonging to the currently authenticated user.
-// getOrCreateUser() identifies the authenticated user and gives us the corresponding database User.
 
-// Prisma then searches the Collection table using the user's database ID.
-// The userId filter is important because it ensures we only retrieve this user's collections,
-// rather than returning collections belonging to other users.
+// We read the optional search query from the request URL.
+// For example:
+// /api/collections?q=react
+// gives us search = "react".
+//
+// If no ?q parameter is provided, search is null and all of the user's collections
+// are retrieved.
+
+
+// Prisma searches the Collection table using the user's database ID.
+// The userId filter is important because it ensures we only retrieve this user's
+// collections rather than returning collections belonging to other users.
+//
+// If a search term exists, Prisma additionally checks whether the collection name
+// contains that term.
+// mode: "insensitive" makes the search case-insensitive, so "react", "React",
+// and "REACT" produce the same results.
+
+
+// The search filter is added only when a search term exists.
+// This means the same endpoint supports both:
+//
+// GET /api/collections
+// → retrieves all of the user's collections.
+//
+// GET /api/collections?q=react
+// → retrieves only the user's collections whose names contain "react".
+
 
 // orderBy sorts the results by createdAt in descending order,
 // so the newest collections appear first.
 
+
 // NextResponse.json() sends the collections back to the client as a JSON response.
+
 
 // The catch block handles different types of failures:
 // authentication failures return 401,

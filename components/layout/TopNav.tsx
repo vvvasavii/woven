@@ -2,9 +2,13 @@
 
 import { Search, Sun, Moon } from "lucide-react";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function TopNav() {
+  const router = useRouter();
   const { isSignedIn } = useAuth();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-surface border-b border-border flex items-center justify-between px-6">
@@ -15,8 +19,21 @@ export function TopNav() {
           <input
             type="text"
             placeholder="Search..."
+            defaultValue={searchParams.get("q") ?? ""}
+            onChange={(event) => {
+              const value = event.target.value;
+
+              const params = new URLSearchParams(searchParams.toString());
+
+              if (value) {
+                params.set("q", value);
+              } else {
+                params.delete("q");
+              }
+
+              router.push(`${pathname}?${params.toString()}`);
+            }}
             className="w-full h-10 pl-10 pr-4 bg-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-            // TODO: Implement search functionality when backend is integrated
           />
         </div>
       </div>

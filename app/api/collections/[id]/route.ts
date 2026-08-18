@@ -9,6 +9,63 @@ const updateCollectionSchema = z.object({
   coverImage: z.string().url().optional(),
 });
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getOrCreateUser();
+
+    // Get the collection ID from the dynamic URL.
+    const { id } = await params;
+
+    // Find the requested collection only if it belongs to the
+    // currently authenticated user.
+    const collection = await prisma.collection.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+      include: {
+        // Get the bookmarks that belong to this collection.
+        // Collection connects to bookmarks through BookmarkCollection.
+        bookmarks: {
+          include: {
+            // Get the actual Bookmark record from the relationship.
+            bookmark: true,
+          },
+        },
+      },
+    });
+
+    // If the collection doesn't exist or doesn't belong to this user,
+    // do not return its data.
+    if (!collection) {
+      return NextResponse.json(
+        { error: "Collection not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(collection);
+  } catch (error) {
+    console.error("Error fetching collection:", error);
+
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Failed to fetch collection" },
+      { status: 500 }
+    );
+  }
+}
+
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }  //params contains the dynamic part of the URL. eg for /api/collections/abc123, params.id will be abc123 //promise promises that the we will eventually get the params object, which contains the dynamic part of the URL. it makes us wait for the params to be resolved before we can use it. this is important because we need the id to update the correct collection.

@@ -29,6 +29,13 @@ export async function GET(request: Request) { //We need the request so we can re
             }
           : {}),
       },
+      include: {
+    _count: {
+      select: {
+        bookmarks: true,
+      },
+    },
+  },
       orderBy: {
         createdAt: "desc",
       },

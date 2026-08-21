@@ -3,6 +3,7 @@
 // We need client-side React state and useEffect because this page
 // fetches bookmark data from our backend after the page loads.
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
 import { CreateBookmarkDialog } from "@/components/dashboard/CreateBookmarkDialog";
 
@@ -34,6 +35,9 @@ interface BookmarkData {
 }
 
 export default function BookmarksPage() {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("q") ?? "";
+
   // Stores the bookmarks returned by the backend.
   const [bookmarks, setBookmarks] = useState<BookmarkData[]>([]);
 
@@ -51,35 +55,41 @@ export default function BookmarksPage() {
   const [createBookmarkOpen, setCreateBookmarkOpen] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchBookmarks() {
       try {
-        // Fetch the authenticated user's bookmarks.
-        const response = await fetch("/api/bookmarks");
+        const response = await fetch(
+          `/api/bookmarks${search ? `?q=${encodeURIComponent(search)}` : ""}`,
+        );
 
-        // Treat unsuccessful HTTP responses as errors.
         if (!response.ok) {
           throw new Error("Failed to fetch bookmarks");
         }
 
-        // Convert the JSON response into JavaScript data.
         const data = await response.json();
 
-        // Store the bookmarks so React can display them.
-        setBookmarks(data);
+        if (!cancelled) {
+          setBookmarks(data);
+          setError("");
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching bookmarks:", error);
 
-        // Display an error message to the user.
-        setError("Failed to load bookmarks");
-      } finally {
-        // Stop showing the loading state after the request finishes.
-        setLoading(false);
+        if (!cancelled) {
+          setError("Failed to load bookmarks");
+          setLoading(false);
+        }
       }
     }
 
-    // Fetch bookmarks when the page first loads.
-    fetchBookmarks(); //Because the dependency array is empty, the effect runs after the initial render, so we use it to fetch the bookmarks when the page loads.
-  }, []);
+    fetchBookmarks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search]);
 
   return (
     <div className="space-y-8">
@@ -189,21 +199,3 @@ export default function BookmarksPage() {
   );
 }
 
-// REVISION NOTES:
-//
-// 1. Replaced placeholderBookmarks with real data from GET /api/bookmarks.
-//
-// 2. Added BookmarkData interface to describe the bookmark structure
-//    returned by the backend, including its collection relationships.
-//
-// 3. Added loading and error states for the API request.
-//
-// 4. bookmarks state stores the authenticated user's actual bookmarks.
-//
-// 5. bookmark.favorite is passed to BookmarkCard instead of the old
-//    hardcoded isFavorite value.
-//
-// 6. A bookmark can belong to multiple collections because of our
-//    many-to-many relationship. The current BookmarkCard only accepts
-//    one collection name, so the first collection is displayed temporarily.
-//    BookmarkCard will be updated later to support multiple collections.

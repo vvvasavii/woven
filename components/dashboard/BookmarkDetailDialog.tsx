@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ExternalLink, Globe, Heart } from "lucide-react";
+import { Check, ExternalLink, Globe, Heart, Pencil, X } from "lucide-react";
 
 interface Collection {
   id: string;
@@ -38,6 +38,8 @@ interface BookmarkDetailDialogProps {
   onBookmarkUpdated?: (bookmark: BookmarkDetailDialogProps["bookmark"]) => void;
 }
 
+type EditableField = "title" | "description" | "notes" | null;
+
 export function BookmarkDetailDialog({
   bookmark,
   open,
@@ -46,12 +48,24 @@ export function BookmarkDetailDialog({
 }: BookmarkDetailDialogProps) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
-    []
+    [],
   );
   const [showCollectionSelector, setShowCollectionSelector] = useState(false);
   const [loadingCollections, setLoadingCollections] = useState(false);
   const [savingCollections, setSavingCollections] = useState(false);
   const [collectionError, setCollectionError] = useState("");
+
+  // Tracks which field is currently being edited.
+  const [editingField, setEditingField] = useState<EditableField>(null);
+
+  // Temporary values used while editing the bookmark.
+  const [editValue, setEditValue] = useState("");
+
+  // Tracks whether the bookmark field is currently being saved.
+  const [savingField, setSavingField] = useState(false);
+
+  // Stores errors from bookmark field updates.
+  const [editError, setEditError] = useState("");
 
   // Load the user's collections when the collection selector is opened.
   useEffect(() => {
@@ -84,12 +98,80 @@ export function BookmarkDetailDialog({
     fetchCollections();
   }, [showCollectionSelector]);
 
-
   if (!bookmark) {
     return null;
   }
 
   const currentBookmark = bookmark;
+
+  function startEditing(field: Exclude<EditableField, null>) {
+    // Load the current value into the temporary edit field.
+    const currentValue =
+      field === "title"
+        ? currentBookmark.title
+        : field === "description"
+          ? (currentBookmark.description ?? "")
+          : (currentBookmark.notes ?? "");
+
+    setEditingField(field);
+    setEditValue(currentValue);
+    setEditError("");
+  }
+
+  function cancelEditing() {
+    // Discard unsaved changes and return to display mode.
+    setEditingField(null);
+    setEditValue("");
+    setEditError("");
+  }
+
+  async function saveField() {
+    if (!editingField) {
+      return;
+    }
+
+    // Title cannot be empty.
+    if (editingField === "title" && !editValue.trim()) {
+      setEditError("Title cannot be empty");
+      return;
+    }
+
+    try {
+      setSavingField(true);
+      setEditError("");
+
+      const response = await fetch(`/api/bookmarks/${currentBookmark.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          [editingField]:
+            editingField === "title"
+              ? editValue.trim()
+              : editValue.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update bookmark");
+      }
+
+      const updatedBookmark = await response.json();
+
+      // Update the bookmark in the parent page immediately.
+      onBookmarkUpdated?.(updatedBookmark);
+
+      // Exit edit mode after the server confirms the update.
+      setEditingField(null);
+      setEditValue("");
+    } catch (error) {
+      console.error("Error updating bookmark:", error);
+      setEditError("Failed to update bookmark");
+    } finally {
+      setSavingField(false);
+    }
+  }
 
   function toggleCollection(collectionId: string) {
     setSelectedCollectionIds((currentIds) => {
@@ -116,7 +198,7 @@ export function BookmarkDetailDialog({
           body: JSON.stringify({
             collectionIds: selectedCollectionIds,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -138,6 +220,32 @@ export function BookmarkDetailDialog({
     }
   }
 
+  function renderEditActions() {
+    return (
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={saveField}
+          disabled={savingField}
+          aria-label="Save changes"
+          className="p-1 rounded-md text-primary hover:bg-[var(--chip-background)] disabled:opacity-50"
+        >
+          <Check className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={cancelEditing}
+          disabled={savingField}
+          aria-label="Cancel editing"
+          className="p-1 rounded-md text-muted-foreground hover:bg-[var(--chip-background)] disabled:opacity-50"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -156,10 +264,36 @@ export function BookmarkDetailDialog({
               )}
             </div>
 
-            <div className="min-w-0">
-              <DialogTitle className="break-words">
-                {bookmark.title}
-              </DialogTitle>
+            <div className="min-w-0 flex-1">
+              {/* Title */}
+              {editingField === "title" ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={editValue}
+                    onChange={(event) => setEditValue(event.target.value)}
+                    autoFocus
+                    maxLength={200}
+                    className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+
+                  {renderEditActions()}
+                </div>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <DialogTitle className="break-words flex-1">
+                    {bookmark.title}
+                  </DialogTitle>
+
+                  <button
+                    type="button"
+                    onClick={() => startEditing("title")}
+                    aria-label="Edit title"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
 
               <DialogDescription className="mt-1 break-all">
                 {bookmark.domain ?? bookmark.url}
@@ -181,26 +315,79 @@ export function BookmarkDetailDialog({
           )}
 
           {/* Description */}
-          {bookmark.description && (
-            <div>
-              <h3 className="text-sm font-medium mb-1">Description</h3>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm font-medium">Description</h3>
 
-              <p className="text-sm text-muted-foreground">
-                {bookmark.description}
-              </p>
+              {editingField !== "description" && (
+                <button
+                  type="button"
+                  onClick={() => startEditing("description")}
+                  aria-label="Edit description"
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {editingField === "description" && renderEditActions()}
             </div>
-          )}
+
+            {editingField === "description" ? (
+              <textarea
+                value={editValue}
+                onChange={(event) => setEditValue(event.target.value)}
+                autoFocus
+                maxLength={1000}
+                rows={4}
+                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Add a description..."
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {bookmark.description || "No description added."}
+              </p>
+            )}
+          </div>
 
           {/* Notes */}
-          {bookmark.notes && (
-            <div>
-              <h3 className="text-sm font-medium mb-1">My Notes</h3>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm font-medium">My Notes</h3>
 
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {bookmark.notes}
-              </p>
+              {editingField !== "notes" && (
+                <button
+                  type="button"
+                  onClick={() => startEditing("notes")}
+                  aria-label="Edit notes"
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {editingField === "notes" && renderEditActions()}
             </div>
-          )}
+
+            {editingField === "notes" ? (
+              <textarea
+                value={editValue}
+                onChange={(event) => setEditValue(event.target.value)}
+                autoFocus
+                maxLength={5000}
+                rows={5}
+                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Add your notes..."
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {bookmark.notes || "No notes added."}
+              </p>
+            )}
+          </div>
+
+          {/* Edit error */}
+          {editError && <p className="text-sm text-destructive">{editError}</p>}
 
           {/* Collections */}
           <div>
@@ -208,25 +395,25 @@ export function BookmarkDetailDialog({
               <h3 className="text-sm font-medium">Collections</h3>
 
               <button
-  type="button"
-  onClick={() => {
-    if (!showCollectionSelector) {
-      // Pre-select collections that already belong to this bookmark.
-      setSelectedCollectionIds(
-        bookmark.collections.map(({ collection }) => collection.id)
-      );
+                type="button"
+                onClick={() => {
+                  if (!showCollectionSelector) {
+                    // Pre-select collections that already belong to this bookmark.
+                    setSelectedCollectionIds(
+                      bookmark.collections.map(
+                        ({ collection }) => collection.id,
+                      ),
+                    );
 
-      setCollectionError("");
-    }
+                    setCollectionError("");
+                  }
 
-    setShowCollectionSelector((current) => !current);
-  }}
-  className="text-sm text-primary hover:underline"
->
-  {showCollectionSelector
-    ? "Cancel"
-    : "Add to Collection"}
-</button>
+                  setShowCollectionSelector((current) => !current);
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                {showCollectionSelector ? "Cancel" : "Add to Collection"}
+              </button>
             </div>
 
             {bookmark.collections.length > 0 ? (
@@ -241,9 +428,7 @@ export function BookmarkDetailDialog({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Uncategorized
-              </p>
+              <p className="text-sm text-muted-foreground">Uncategorized</p>
             )}
 
             {/* Collection selector */}
@@ -267,26 +452,20 @@ export function BookmarkDetailDialog({
                         <input
                           type="checkbox"
                           checked={selectedCollectionIds.includes(
-                            collection.id
+                            collection.id,
                           )}
-                          onChange={() =>
-                            toggleCollection(collection.id)
-                          }
+                          onChange={() => toggleCollection(collection.id)}
                           className="h-4 w-4"
                         />
 
-                        <span className="text-sm">
-                          {collection.name}
-                        </span>
+                        <span className="text-sm">{collection.name}</span>
                       </label>
                     ))}
                   </div>
                 )}
 
                 {collectionError && (
-                  <p className="text-sm text-destructive">
-                    {collectionError}
-                  </p>
+                  <p className="text-sm text-destructive">{collectionError}</p>
                 )}
 
                 {collections.length > 0 && (
@@ -314,9 +493,7 @@ export function BookmarkDetailDialog({
             />
 
             <span className="text-muted-foreground">
-              {bookmark.favorite
-                ? "Saved as a favorite"
-                : "Not a favorite"}
+              {bookmark.favorite ? "Saved as a favorite" : "Not a favorite"}
             </span>
           </div>
 

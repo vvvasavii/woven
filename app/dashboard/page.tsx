@@ -2,7 +2,7 @@
 
 // Dashboard needs client-side state because it fetches real data
 // and opens the create/detail dialogs.
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import {
   Dialog,
@@ -23,6 +23,8 @@ import {
   Heart,
   FolderKanban,
 } from "lucide-react";
+
+import { useSearchParams } from "next/navigation";
 
 import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
@@ -58,6 +60,8 @@ interface CollectionData {
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q")?.trim().toLowerCase() ?? "";
   const [bookmarks, setBookmarks] = useState<BookmarkData[]>([]);
   const [collections, setCollections] = useState<CollectionData[]>([]);
 
@@ -170,8 +174,30 @@ export default function DashboardPage() {
     (bookmark) => bookmark.favorite,
   ).length;
 
-  const recentBookmarks = bookmarks.slice(0, 6);
-  const recentCollections = collections.slice(0, 4);
+  // Dashboard search only checks bookmark titles and collection names.
+  const filteredBookmarks = useMemo(() => {
+    if (!searchQuery) {
+      return bookmarks;
+    }
+
+    return bookmarks.filter((bookmark) =>
+      bookmark.title.toLowerCase().includes(searchQuery),
+    );
+  }, [bookmarks, searchQuery]);
+
+  const filteredCollections = useMemo(() => {
+    if (!searchQuery) {
+      return collections;
+    }
+
+    return collections.filter((collection) =>
+      collection.name.toLowerCase().includes(searchQuery),
+    );
+  }, [collections, searchQuery]);
+
+  // Dashboard shows only the six most recent bookmarks and collections.
+  const recentBookmarks = filteredBookmarks.slice(0, 6);
+  const recentCollections = filteredCollections.slice(0, 4);
 
   return (
     <div className="space-y-10">
@@ -277,7 +303,11 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No bookmarks yet.</p>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery
+                  ? "No bookmarks match your search."
+                  : "No bookmarks yet."}
+              </p>
             )}
           </section>
 
@@ -304,7 +334,9 @@ export default function DashboardPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No collections yet.
+                {searchQuery
+                  ? "No collections match your search."
+                  : "No collections yet."}
               </p>
             )}
           </section>

@@ -24,8 +24,10 @@ export async function POST(request: Request) {
 
     const { collectionIds, ...bookmarkData } = validatedData; //taking everything except collectionIds and putting it in bookmarkData, and taking collectionIds and putting it in collectionIds.
 
-    if (collectionIds.length > 0) { //only check wehn the bookamr belongs to a collection,ameaning if collecionId is provided, we need to check if the collection exists and belongs to the user. If not, we can skip this check.
-      const collections = await prisma.collection.findMany({ //finds all collections that match the collectionIds and belong to the user
+    if (collectionIds.length > 0) {
+      //only check wehn the bookamr belongs to a collection,ameaning if collecionId is provided, we need to check if the collection exists and belongs to the user. If not, we can skip this check.
+      const collections = await prisma.collection.findMany({
+        //finds all collections that match the collectionIds and belong to the user
         where: {
           id: {
             in: collectionIds,
@@ -42,8 +44,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const bookmark = await prisma.bookmark.create({ //CREATES BOOKMARKS. //MAP transforms each collection ID into an object used to create
-//   BookmarkCollection relationships.
+    const bookmark = await prisma.bookmark.create({
+      //CREATES BOOKMARKS. //MAP transforms each collection ID into an object used to create
+      //   BookmarkCollection relationships.
       data: {
         ...bookmarkData,
         userId: user.id,
@@ -53,11 +56,12 @@ export async function POST(request: Request) {
           })),
         },
       },
-      include: {  // Collections and Bookmarks have a many-to-many relationship.
-// We include collections when returning bookmarks because we want to show
-// which collections each bookmark belongs to.
-// We don't include bookmarks when returning collections because this query
-// only needs to return the matching collections.
+      include: {
+        // Collections and Bookmarks have a many-to-many relationship.
+        // We include collections when returning bookmarks because we want to show
+        // which collections each bookmark belongs to.
+        // We don't include bookmarks when returning collections because this query
+        // only needs to return the matching collections.
         collections: {
           include: {
             collection: true,
@@ -239,7 +243,6 @@ export async function POST(request: Request) {
 // collections.length !== collectionIds.length:
 // → ensures every requested collection exists and belongs to the user.
 
-
 export async function GET(request: Request) {
   try {
     const user = await getOrCreateUser();
@@ -252,20 +255,10 @@ export async function GET(request: Request) {
         userId: user.id,
         ...(search
           ? {
-              OR: [
-                {
-                  title: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  notes: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              ],
+              title: {
+                contains: search,
+                mode: "insensitive",
+              },
             }
           : {}),
       },
@@ -286,15 +279,12 @@ export async function GET(request: Request) {
     console.error("Error fetching bookmarks:", error);
 
     if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     return NextResponse.json(
       { error: "Failed to fetch bookmarks" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -306,7 +296,6 @@ export async function GET(request: Request) {
 // getOrCreateUser() identifies the authenticated user and gives us the corresponding
 // database User, including their database ID.
 
-
 // We read the optional search query from the request URL.
 // For example:
 // /api/bookmarks?q=react
@@ -315,11 +304,9 @@ export async function GET(request: Request) {
 // If no ?q parameter is provided, search is null and all of the user's bookmarks
 // are retrieved.
 
-
 // Prisma searches the Bookmark table using the user's database ID.
 // The userId filter is important because it ensures we only retrieve this user's
 // bookmarks rather than returning bookmarks belonging to other users.
-
 
 // If a search term exists, Prisma additionally searches two fields:
 // 1. title
@@ -335,7 +322,6 @@ export async function GET(request: Request) {
 // search case-insensitive.
 // Therefore "react", "React", and "REACT" produce the same matching results.
 
-
 // The search filter is added only when a search term exists.
 // This means the same endpoint supports both:
 //
@@ -345,7 +331,6 @@ export async function GET(request: Request) {
 // GET /api/bookmarks?q=react
 // → retrieves only the user's bookmarks whose title or My Notes contain "react".
 
-
 // The include block retrieves the bookmark's collection relationships.
 // Each bookmark can belong to multiple collections through the
 // BookmarkCollection join table.
@@ -353,13 +338,10 @@ export async function GET(request: Request) {
 // The search does not change this relationship data.
 // It only determines which bookmarks are returned.
 
-
 // orderBy sorts the results by createdAt in descending order,
 // so the newest bookmarks appear first.
 
-
 // NextResponse.json() sends the bookmarks back to the client as a JSON response.
-
 
 // The catch block handles different types of failures:
 // authentication failures return 401,

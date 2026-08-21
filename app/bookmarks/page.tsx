@@ -4,6 +4,7 @@
 // fetches bookmark data from our backend after the page loads.
 import { useEffect, useState } from "react";
 import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
+import { CreateBookmarkDialog } from "@/components/dashboard/CreateBookmarkDialog";
 
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
@@ -46,6 +47,9 @@ export default function BookmarksPage() {
     null,
   );
 
+  // Controls whether the Create Bookmark dialog is open.
+  const [createBookmarkOpen, setCreateBookmarkOpen] = useState(false);
+
   useEffect(() => {
     async function fetchBookmarks() {
       try {
@@ -85,8 +89,9 @@ export default function BookmarksPage() {
         subtitle="All your saved resources in one place"
         action={
           <button
+            type="button"
+            onClick={() => setCreateBookmarkOpen(true)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-            // TODO: Connect this button to the Create Bookmark dialog.
           >
             <span className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -130,8 +135,9 @@ export default function BookmarksPage() {
           description="Save your first bookmark to start building your knowledge library"
           action={
             <button
+              type="button"
+              onClick={() => setCreateBookmarkOpen(true)}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-              // TODO: Connect this button to the Create Bookmark dialog.
             >
               Add Bookmark
             </button>
@@ -147,15 +153,36 @@ export default function BookmarksPage() {
           }
         }}
         onBookmarkUpdated={(updatedBookmark) => {
-          // Replace the old bookmark with the updated bookmark in the list.
+          // Ignore the update if the dialog did not return a bookmark.
+          if (!updatedBookmark) {
+            return;
+          }
+
+          // Replace the edited bookmark in the page's local bookmark list.
           setBookmarks((currentBookmarks) =>
             currentBookmarks.map((bookmark) =>
               bookmark.id === updatedBookmark.id ? updatedBookmark : bookmark,
             ),
           );
 
-          // Keep the detail dialog in sync with the updated bookmark.
+          // Keep the detail dialog showing the latest bookmark data.
           setSelectedBookmark(updatedBookmark);
+        }}
+      />
+
+      <CreateBookmarkDialog
+        open={createBookmarkOpen}
+        onOpenChange={setCreateBookmarkOpen}
+        onBookmarkCreated={async () => {
+          // Re-fetch bookmarks so the newly created bookmark appears immediately.
+          const response = await fetch("/api/bookmarks");
+
+          if (!response.ok) {
+            throw new Error("Failed to refresh bookmarks");
+          }
+
+          const data = await response.json();
+          setBookmarks(data);
         }}
       />
     </div>

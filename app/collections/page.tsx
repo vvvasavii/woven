@@ -271,11 +271,12 @@ const search = searchParams.get("q") ?? "";
           description="Create your first collection to start organizing your bookmarks"
           action={
             <button
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-              // TODO: Implement create collection functionality
-            >
-              Create Collection
-            </button>
+  type="button"
+  onClick={() => setOpen(true)}
+  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+>
+  Create Collection
+</button>
           }
         />
       )}

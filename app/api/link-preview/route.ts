@@ -24,14 +24,23 @@ export async function POST(request: Request) {
       signal: controller.signal,
     });
 
+    console.log("Link preview fetch status:", response.status, response.statusText);
+
     // Clear the timeout once the request finishes.
     clearTimeout(timeout);
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch webpage" },
-        { status: 400 },
-      );
+      // Some websites block server-side requests or return errors such as 403/429.
+      // The bookmark itself is still valid, so return a graceful fallback instead
+      // of treating metadata fetching as a bookmark-creation failure.
+      return NextResponse.json({
+        title: null,
+        description: null,
+        domain: new URL(url).hostname,
+        favicon: null,
+        previewImage: null,
+        fetched: false,
+      });
     }
 
     // 3. Get the webpage HTML
@@ -42,13 +51,14 @@ export async function POST(request: Request) {
 
     // 5. Extract metadata
     const title =
-      $('meta[property="og:title"]').attr("content") ||
-      $("title").text().trim() ||
-      null; //Try og:title
+  $('meta[property="og:title"]').attr("content") ||
+  $("title").text().trim() ||
+  new URL(url).hostname.replace(/^www\./, "") ||
+  null; //Try og:title
     //       ↓
     // if unavailable, try <title>
     //       ↓
-    // if unavailable, return null
+    // domain name if metadata is unavailable.
 
     const description =
       $('meta[property="og:description"]').attr("content") ||
@@ -102,6 +112,7 @@ export async function POST(request: Request) {
       domain,
       favicon: resolvedFavicon,
       previewImage: resolvedPreviewImage,
+      fetched: true,
     });
   } catch (error) {
     console.error("Error generating link preview:", error);

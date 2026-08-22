@@ -55,6 +55,9 @@ export function BookmarkDetailDialog({
   const [savingCollections, setSavingCollections] = useState(false);
   const [collectionError, setCollectionError] = useState("");
 
+  // Keeps the detail view uncluttered until the user explicitly chooses to edit.
+  const [isEditMode, setIsEditMode] = useState(false);
+
   // Tracks which field is currently being edited.
   const [editingField, setEditingField] = useState<EditableField>(null);
 
@@ -123,6 +126,23 @@ export function BookmarkDetailDialog({
     setEditingField(null);
     setEditValue("");
     setEditError("");
+  }
+
+  function toggleEditMode() {
+    if (isEditMode) {
+      cancelEditing();
+    }
+
+    setIsEditMode((current) => !current);
+  }
+
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      setIsEditMode(false);
+      cancelEditing();
+    }
+
+    onOpenChange(nextOpen);
   }
 
   async function saveField() {
@@ -247,12 +267,16 @@ export function BookmarkDetailDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <div className="flex items-start gap-3 pr-8">
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="w-[calc(100%-2rem)] max-w-[500px] gap-5 overflow-y-auto border-border/60 bg-popover p-5 shadow-xl sm:p-6 max-h-[90vh] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <DialogHeader className="space-y-3 pb-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
             {/* Favicon */}
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[var(--chip-background)] flex items-center justify-center overflow-hidden">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
@@ -273,39 +297,65 @@ export function BookmarkDetailDialog({
                     onChange={(event) => setEditValue(event.target.value)}
                     autoFocus
                     maxLength={200}
-                    className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="min-w-0 flex-1 rounded-lg border-2 border-border/60 bg-card/40 px-3 py-2 text-base font-medium text-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
                   />
 
                   {renderEditActions()}
                 </div>
               ) : (
                 <div className="flex items-start gap-2">
-                  <DialogTitle className="break-words flex-1">
+                  <DialogTitle className="flex-1 break-words text-xl font-semibold text-foreground">
                     {bookmark.title}
                   </DialogTitle>
 
-                  <button
-                    type="button"
-                    onClick={() => startEditing("title")}
-                    aria-label="Edit title"
-                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() => startEditing("title")}
+                      aria-label="Edit title"
+                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               )}
 
-              <DialogDescription className="mt-1 break-all">
+              <DialogDescription className="mt-1 break-all text-sm text-muted-foreground">
                 {bookmark.domain ?? bookmark.url}
               </DialogDescription>
             </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={toggleEditMode}
+                aria-pressed={isEditMode}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <Pencil className="h-4 w-4" />
+                {isEditMode ? "Done" : "Edit"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDialogOpenChange(false)}
+                aria-label="Close bookmark details"
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
+
+          <div className="h-px w-full bg-gradient-to-r from-primary/30 via-border/40 to-transparent" />
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Preview image */}
           {bookmark.previewImage && (
-            <div className="overflow-hidden rounded-lg border border-border">
+            <div className="overflow-hidden rounded-lg border border-border/60 bg-card/40">
               <img
                 src={bookmark.previewImage}
                 alt=""
@@ -316,15 +366,15 @@ export function BookmarkDetailDialog({
 
           {/* Description */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-sm font-medium">Description</h3>
+            <div className="mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-foreground/90">Description</h3>
 
-              {editingField !== "description" && (
+              {isEditMode && editingField !== "description" && (
                 <button
                   type="button"
                   onClick={() => startEditing("description")}
                   aria-label="Edit description"
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
@@ -340,11 +390,11 @@ export function BookmarkDetailDialog({
                 autoFocus
                 maxLength={1000}
                 rows={4}
-                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full resize-none rounded-lg border-2 border-border/60 bg-card/40 px-4 py-2.5 text-sm text-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
                 placeholder="Add a description..."
               />
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="break-words text-sm leading-6 text-muted-foreground">
                 {bookmark.description || "No description added."}
               </p>
             )}
@@ -352,15 +402,15 @@ export function BookmarkDetailDialog({
 
           {/* Notes */}
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-sm font-medium">My Notes</h3>
+            <div className="mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-foreground/90">My Notes</h3>
 
-              {editingField !== "notes" && (
+              {isEditMode && editingField !== "notes" && (
                 <button
                   type="button"
                   onClick={() => startEditing("notes")}
                   aria-label="Edit notes"
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-[var(--chip-background)] transition-colors"
+                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
@@ -376,11 +426,11 @@ export function BookmarkDetailDialog({
                 autoFocus
                 maxLength={5000}
                 rows={5}
-                className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full resize-none rounded-lg border-2 border-border/60 bg-card/40 px-4 py-2.5 text-sm text-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
                 placeholder="Add your notes..."
               />
             ) : (
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
                 {bookmark.notes || "No notes added."}
               </p>
             )}
@@ -391,8 +441,8 @@ export function BookmarkDetailDialog({
 
           {/* Collections */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">Collections</h3>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-medium text-foreground/90">Collections</h3>
 
               <button
                 type="button"
@@ -410,7 +460,7 @@ export function BookmarkDetailDialog({
 
                   setShowCollectionSelector((current) => !current);
                 }}
-                className="text-sm text-primary hover:underline"
+                className="rounded-md px-1 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/10 hover:no-underline focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 {showCollectionSelector ? "Cancel" : "Add to Collection"}
               </button>
@@ -421,7 +471,7 @@ export function BookmarkDetailDialog({
                 {bookmark.collections.map(({ collection }) => (
                   <span
                     key={collection.id}
-                    className="px-2.5 py-1 rounded-full bg-[var(--chip-background)] text-sm"
+                    className="rounded-full bg-[var(--chip-background)] px-2.5 py-1 text-sm"
                   >
                     {collection.name}
                   </span>
@@ -433,7 +483,7 @@ export function BookmarkDetailDialog({
 
             {/* Collection selector */}
             {showCollectionSelector && (
-              <div className="mt-3 space-y-3 rounded-lg border border-border p-3">
+              <div className="mt-3 space-y-3 rounded-lg border border-border/60 bg-card/40 p-3">
                 {loadingCollections ? (
                   <p className="text-sm text-muted-foreground">
                     Loading collections...
@@ -473,7 +523,7 @@ export function BookmarkDetailDialog({
                     type="button"
                     onClick={saveCollections}
                     disabled={savingCollections}
-                    className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-popover"
                   >
                     {savingCollections ? "Saving..." : "Save Collections"}
                   </button>
@@ -502,7 +552,7 @@ export function BookmarkDetailDialog({
             href={bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-popover"
           >
             <ExternalLink className="h-4 w-4" />
             Open Website

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -40,15 +40,6 @@ export function EditCollectionDialog({
   const [description, setDescription] = useState(initialData.description);
   const [coverImage, setCoverImage] = useState<string | null>(initialData.coverImage);
 
-  // Reset form when initialData changes or dialog opens
-  useEffect(() => {
-    if (open) {
-      setName(initialData.name);
-      setDescription(initialData.description);
-      setCoverImage(initialData.coverImage);
-    }
-  }, [open, initialData.name, initialData.description, initialData.coverImage]);
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await onUpdateCollection({
@@ -68,9 +59,23 @@ export function EditCollectionDialog({
     }
   }
 
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      handleClose();
+      return;
+    }
+
+    if (!isUpdating) {
+      setName(initialData.name);
+      setDescription(initialData.description);
+      setCoverImage(initialData.coverImage);
+      onOpenChange(true);
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[500px] w-full mx-4 sm:mx-auto bg-popover border-border/60 shadow-xl p-6 max-h-[90vh] overflow-y-auto" showCloseButton={false}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-[680px] bg-popover border-border/60 shadow-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" showCloseButton={false}>
         <DialogHeader className="space-y-3 pb-4">
           <div className="flex items-start justify-between">
             <div className="space-y-2">

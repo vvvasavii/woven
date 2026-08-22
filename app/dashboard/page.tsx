@@ -257,14 +257,6 @@ export default function DashboardPage() {
             <BookmarkIcon className="h-4 w-4" />
             Save Bookmark
           </button>
-
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors"
-          >
-            <Search className="h-4 w-4" />
-            Search Resources
-          </button>
         </div>
       </div>
 

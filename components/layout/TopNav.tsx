@@ -40,15 +40,6 @@ export function TopNav() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-3">
-        {/* Theme Toggle Placeholder */}
-        <button
-          className="p-2 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-surface"
-          aria-label="Toggle theme"
-          // TODO: Implement theme toggle functionality
-        >
-          <Sun className="h-5 w-5 dark:hidden" />
-          <Moon className="h-5 w-5 hidden dark:block" />
-        </button>
 
         {/* Auth Controls */}
         {!isSignedIn ? (

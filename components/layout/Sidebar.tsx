@@ -6,8 +6,7 @@ import {
   LayoutDashboard, 
   FolderKanban, 
   Bookmark, 
-  Heart, 
-  Settings 
+  Heart 
 } from "lucide-react";
 
 const navigation = [
@@ -15,7 +14,6 @@ const navigation = [
   { name: "Collections", href: "/collections", icon: FolderKanban },
   { name: "Bookmarks", href: "/bookmarks", icon: Bookmark },
   { name: "Favorites", href: "/favorites", icon: Heart },
-  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {

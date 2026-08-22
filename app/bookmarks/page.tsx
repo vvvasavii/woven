@@ -2,7 +2,7 @@
 
 // We need client-side React state and useEffect because this page
 // fetches bookmark data from our backend after the page loads.
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
 import { CreateBookmarkDialog } from "@/components/dashboard/CreateBookmarkDialog";
@@ -34,7 +34,7 @@ interface BookmarkData {
   }[];
 }
 
-export default function BookmarksPage() {
+function BookmarksContent() {
   const searchParams = useSearchParams();
   const search = searchParams.get("q") ?? "";
 
@@ -101,11 +101,12 @@ export default function BookmarksPage() {
           <button
             type="button"
             onClick={() => setCreateBookmarkOpen(true)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <span className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add Bookmark
+              <span className="hidden sm:inline">Add Bookmark</span>
+              <span className="sm:hidden">Add</span>
             </span>
           </button>
         }
@@ -196,6 +197,14 @@ export default function BookmarksPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function BookmarksPage() {
+  return (
+    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+      <BookmarksContent />
+    </Suspense>
   );
 }
 

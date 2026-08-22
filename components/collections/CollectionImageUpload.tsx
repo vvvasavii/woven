@@ -1,7 +1,7 @@
 "use client";
 
 import { CldUploadWidget } from "next-cloudinary";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X, RefreshCw } from "lucide-react";
 
 interface CollectionImageUploadProps {
   // Stores the Cloudinary URL of the selected image.
@@ -65,12 +65,25 @@ export function CollectionImageUpload({
                 If an image URL already exists, show the uploaded image
                 instead of showing the upload button again.
               */
-              <div className="relative overflow-hidden rounded-lg border border-border">
+              <div className="relative overflow-hidden rounded-lg border-2 border-border/60 shadow-sm">
                 <img
                   src={value}
                   alt="Collection cover preview"
-                  className="h-40 w-full object-cover"
+                  className="h-44 w-full object-cover"
                 />
+
+                {/* Subtle overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+
+                {/* Replace button */}
+                <button
+                  type="button"
+                  onClick={() => open()}
+                  className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity hover:opacity-100 group"
+                >
+                  <RefreshCw className="h-5 w-5 text-white" />
+                  <span className="text-sm font-medium text-white">Replace image</span>
+                </button>
 
                 {/* 
                   Remove the selected image from the form.
@@ -80,7 +93,7 @@ export function CollectionImageUpload({
                 <button
                   type="button"
                   onClick={() => onChange(null)}
-                  className="absolute top-2 right-2 rounded-full bg-background/90 p-1.5 text-foreground shadow-sm hover:bg-background"
+                  className="absolute top-3 right-3 rounded-full bg-background/95 p-2 text-foreground shadow-md hover:bg-background transition-colors"
                 >
                   <X className="h-4 w-4" />
                   <span className="sr-only">Remove image</span>
@@ -94,17 +107,31 @@ export function CollectionImageUpload({
               <button
                 type="button"
                 onClick={() => open()}
-                className="flex h-40 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-background text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                className="group relative flex h-44 w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border/60 bg-card/30 transition-all hover:border-primary/40 hover:bg-card/50 hover:shadow-sm"
               >
-                <ImagePlus className="h-6 w-6" />
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-[0.03]" 
+                     style={{
+                       backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
+                       backgroundSize: '24px 24px'
+                     }}
+                />
+                
+                <div className="relative flex flex-col items-center gap-3 text-muted-foreground group-hover:text-foreground transition-colors">
+                  <div className="rounded-full bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
+                    <ImagePlus className="h-6 w-6 text-primary" />
+                  </div>
+                  
+                  <div className="text-center space-y-1">
+                    <span className="text-sm font-medium text-foreground">
+                      Upload cover image
+                    </span>
 
-                <span className="text-sm font-medium">
-                  Upload cover image
-                </span>
-
-                <span className="text-xs">
-                  JPG, PNG, WebP or AVIF · Max 5 MB
-                </span>
+                    <span className="text-xs text-muted-foreground">
+                      JPG, PNG, WebP or AVIF · Max 5 MB
+                    </span>
+                  </div>
+                </div>
               </button>
             )}
           </>

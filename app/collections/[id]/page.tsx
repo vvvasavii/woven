@@ -3,16 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ArrowLeft } from "lucide-react";
 
-import { CollectionImageUpload } from "@/components/collections/CollectionImageUpload";
+import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
+import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
+import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
+import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 
 // Represents the bookmark data returned by the collection API.
 interface Bookmark {
@@ -25,6 +21,14 @@ interface Bookmark {
   previewImage: string | null;
   notes: string | null;
   favorite: boolean;
+
+  // A bookmark can belong to multiple collections.
+  collections: {
+    collection: {
+      id: string;
+      name: string;
+    };
+  }[];
 }
 
 // Represents the collection returned by the API.
@@ -59,15 +63,6 @@ export default function CollectionPage({
   // Controls whether the Edit Collection dialog is open.
   const [editOpen, setEditOpen] = useState(false);
 
-  // Stores the edited collection name.
-  const [editName, setEditName] = useState("");
-
-  // Stores the edited collection description.
-  const [editDescription, setEditDescription] = useState("");
-
-  // Stores the edited Cloudinary cover image URL.
-  const [editCoverImage, setEditCoverImage] = useState<string | null>(null);
-
   // Tracks whether the PATCH request is running.
   const [updating, setUpdating] = useState(false);
 
@@ -82,6 +77,11 @@ export default function CollectionPage({
 
   // Stores an error from the delete request.
   const [deleteError, setDeleteError] = useState("");
+
+  // Stores the bookmark currently selected for the detail dialog.
+  const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(
+    null,
+  );
 
   useEffect(() => {
     async function fetchCollection() {
@@ -131,11 +131,11 @@ export default function CollectionPage({
     );
   }
 
-  async function handleUpdateCollection(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
+  async function handleUpdateCollection(data: {
+    name: string;
+    description: string;
+    coverImage: string | null;
+  }) {
     setUpdating(true);
     setUpdateError("");
 
@@ -149,28 +149,28 @@ export default function CollectionPage({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: editName,
-          description: editDescription || undefined,
-          coverImage: editCoverImage || undefined,
+          name: data.name,
+          description: data.description || undefined,
+          coverImage: data.coverImage || undefined,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to update collection");
+        throw new Error(responseData.error || "Failed to update collection");
       }
 
       // Replace the displayed collection with the updated data.
       // This updates the page immediately without another GET request.
       setCollection((currentCollection) => {
         if (!currentCollection) {
-          return data;
+          return responseData;
         }
 
         return {
           ...currentCollection,
-          ...data,
+          ...responseData,
         };
       });
 
@@ -226,13 +226,14 @@ export default function CollectionPage({
       <div>
         <Link
           href="/collections"
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-card/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
-          ← Back to Collections
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Collections</span>
         </Link>
 
         {/* Display the collection name and description. */}
-        <h1 className="mt-4 text-2xl font-semibold text-foreground">
+        <h1 className="mt-4 text-xl sm:text-2xl font-semibold text-foreground">
           {collection.name}
         </h1>
 
@@ -240,19 +241,15 @@ export default function CollectionPage({
           <p className="mt-2 text-muted-foreground">{collection.description}</p>
         )}
 
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {/* Opens the existing Edit Collection dialog. */}
           <button
             type="button"
             onClick={() => {
-              // Pre-fill the edit form with the current collection values.
-              setEditName(collection.name);
-              setEditDescription(collection.description ?? "");
-              setEditCoverImage(collection.coverImage);
               setUpdateError("");
               setEditOpen(true);
             }}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="rounded-lg bg-primary px-3 sm:px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Edit Collection
           </button>
@@ -264,165 +261,106 @@ export default function CollectionPage({
               setDeleteError("");
               setDeleteOpen(true);
             }}
-            className="rounded-lg border border-destructive px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
+            className="rounded-lg border-2 border-destructive/60 px-3 sm:px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 hover:border-destructive/80 transition-colors"
           >
             Delete Collection
           </button>
         </div>
       </div>
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Collection</DialogTitle>
+      <EditCollectionDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onUpdateCollection={handleUpdateCollection}
+        initialData={{
+          name: collection.name,
+          description: collection.description ?? "",
+          coverImage: collection.coverImage,
+        }}
+        isUpdating={updating}
+        error={updateError}
+      />
 
-            <DialogDescription>
-              Update the details of your collection.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleUpdateCollection} className="space-y-5">
-            <div className="space-y-2">
-              <label
-                htmlFor="edit-collection-name"
-                className="text-sm font-medium"
-              >
-                Name
-              </label>
-
-              <input
-                id="edit-collection-name"
-                value={editName}
-                onChange={(event) => setEditName(event.target.value)}
-                maxLength={100}
-                required
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="edit-collection-description"
-                className="text-sm font-medium"
-              >
-                Description
-              </label>
-
-              <textarea
-                id="edit-collection-description"
-                value={editDescription}
-                onChange={(event) => setEditDescription(event.target.value)}
-                maxLength={500}
-                rows={3}
-                className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cover Image</label>
-
-              <CollectionImageUpload
-                value={editCoverImage}
-                onChange={setEditCoverImage}
-              />
-            </div>
-
-            {updateError && (
-              <p className="text-sm text-destructive">{updateError}</p>
-            )}
-
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setEditOpen(false)}
-                disabled={updating}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={updating}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-              >
-                {updating ? "Saving..." : "Save Changes"}
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-  <DialogContent>
-    <DialogHeader>
-      <DialogTitle>Delete Collection</DialogTitle>
-
-      <DialogDescription>
-        Are you sure you want to delete &quot;{collection.name}&quot;?
-        The bookmarks inside this collection will not be deleted.
-      </DialogDescription>
-    </DialogHeader>
-
-    {deleteError && (
-      <p className="text-sm text-destructive">
-        {deleteError}
-      </p>
-    )}
-
-    <DialogFooter>
-      {/* Close the confirmation dialog without deleting anything. */}
-      <button
-        type="button"
-        onClick={() => setDeleteOpen(false)}
-        disabled={deleting}
-        className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-      >
-        Cancel
-      </button>
-
-      {/* Sends DELETE /api/collections/:id. */}
-      <button
-        type="button"
-        onClick={handleDeleteCollection}
-        disabled={deleting}
-        className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50"
-      >
-        {deleting ? "Deleting..." : "Delete"}
-      </button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+      <DeleteCollectionDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleteCollection={handleDeleteCollection}
+        collectionName={collection.name}
+        isDeleting={deleting}
+        error={deleteError}
+      />
 
       {collection.bookmarks.length > 0 ? (
         <div className="space-y-4">
-          {/* Display each bookmark belonging to this collection. */}
+          {/* Reuse the main BookmarkCard so collection bookmarks behave
+        exactly like bookmarks elsewhere in Woven. */}
           {collection.bookmarks.map(({ bookmark }) => (
-            <div
+            <BookmarkCard
               key={bookmark.id}
-              className="bg-background border border-border rounded-lg p-4"
-            >
-              <h2 className="font-medium text-foreground">{bookmark.title}</h2>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                {bookmark.domain || bookmark.url}
-              </p>
-
-              {/* Display My Notes only when the bookmark has notes. */}
-              {bookmark.notes && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {bookmark.notes}
-                </p>
-              )}
-            </div>
+              id={bookmark.id}
+              title={bookmark.title}
+              url={bookmark.url}
+              domain={bookmark.domain || bookmark.url}
+              collection={collection.name}
+              favicon={bookmark.favicon}
+              isFavorite={bookmark.favorite}
+              onClick={() => {
+                // The collection API doesn't include the bookmark's collections,
+                // so provide the current collection for the detail dialog.
+                setSelectedBookmark({
+                  ...bookmark,
+                  collections: [
+                    {
+                      collection: {
+                        id: collection.id,
+                        name: collection.name,
+                      },
+                    },
+                  ],
+                });
+              }}
+            />
           ))}
         </div>
       ) : (
-        // Displayed when the collection contains no bookmarks.
         <div className="text-muted-foreground">
           No bookmarks in this collection yet.
         </div>
       )}
+
+      <BookmarkDetailDialog
+        bookmark={selectedBookmark}
+        open={selectedBookmark !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedBookmark(null);
+          }
+        }}
+        onBookmarkUpdated={(updatedBookmark) => {
+          if (!updatedBookmark) {
+            return;
+          }
+
+          // Update the bookmark inside the collection immediately.
+          setCollection((currentCollection) => {
+            if (!currentCollection) {
+              return currentCollection;
+            }
+
+            return {
+              ...currentCollection,
+              bookmarks: currentCollection.bookmarks.map(({ bookmark }) =>
+                bookmark.id === updatedBookmark.id
+                  ? { bookmark: updatedBookmark }
+                  : { bookmark },
+              ),
+            };
+          });
+
+          // Keep the dialog showing the updated bookmark.
+          setSelectedBookmark(updatedBookmark);
+        }}
+      />
     </div>
   );
 }

@@ -57,8 +57,8 @@
 
 :root{
   /* Canvas */
-  --background: hsl(39, 55%, 75%);
-  --foreground: hsl(24 22% 18%);
+  --background: hsl(39, 55%, 75%); /*card clr */
+  --foreground: hsl(26, 22%, 15%); /* big headings*/
 
   /* Cards match the active sidebar accent */
   --primary: hsl(18 42% 43%);
@@ -73,8 +73,8 @@
   --card-secondary-foreground: hsl(40 40% 90%);
   
   /* Chip styling - Paper labels */
-  --chip-background: hsl(38 21% 60%);
-  --chip-foreground: hsl(24 22% 18%);
+  --chip-background: hsl(0, 10%, 72%);
+  --chip-foreground: hsl(13, 25%, 74%);/*icon color*/
   
   /* Favorite highlight - Warm peach/terracotta */
   --favorite-highlight: hsl(0, 83%, 37%);
@@ -86,12 +86,12 @@
   --secondary-foreground: var(--foreground);
 
   --muted: hsl(37 20% 87%);
-  --muted-foreground: hsl(28 14% 36%);
+  --muted-foreground: hsl(30, 15%, 24%); /*-resoiuce across - lib text*/
 
   --accent: hsl(26 28% 84%);
   --accent-foreground: hsl(23 24% 20%);
 
-  --border: hsl(30 22% 70%);
+  --border: hsl(32, 47%, 24%);
   --input: hsl(36 22% 90%);
   --ring: var(--primary);
 
@@ -108,44 +108,6 @@
   --sidebar-ring: var(--primary);
 
   --radius: .9rem;
-}
-
-.dark{
-  --background: hsl(24 16% 10%);
-  --foreground: hsl(38 24% 91%);
-
-  --primary: hsl(20 44% 58%);
-  --primary-foreground: hsl(40 40% 99%);
-
-  --card: hsl(20 24% 24%);
-  --card-foreground: hsl(38 24% 91%);
-
-  --popover: hsl(22 18% 18%);
-  --popover-foreground: var(--foreground);
-
-  --secondary: hsl(22 14% 16%);
-  --secondary-foreground: var(--foreground);
-
-  --muted: hsl(22 12% 20%);
-  --muted-foreground: hsl(35 14% 68%);
-
-  --accent: hsl(22 20% 28%);
-  --accent-foreground: var(--foreground);
-
-  --border: hsl(24 10% 28%);
-  --input: hsl(24 10% 24%);
-  --ring: var(--primary);
-
-  --destructive: hsl(4 70% 56%);
-
-  --sidebar: hsl(22 22% 8%);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: white;
-  --sidebar-accent: hsl(22 14% 18%);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: hsl(22 12% 20%);
-  --sidebar-ring: var(--primary);
 }
 
 @layer base{

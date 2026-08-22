@@ -205,7 +205,7 @@ export function CreateBookmarkDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Bookmark</DialogTitle>
           <DialogDescription>
@@ -218,7 +218,7 @@ export function CreateBookmarkDialog({
           <div>
             <label className="text-sm font-medium">URL</label>
 
-            <div className="flex gap-2 mt-1">
+            <div className="flex flex-col sm:flex-row gap-2 mt-1">
               <input
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
@@ -230,7 +230,7 @@ export function CreateBookmarkDialog({
                 type="button"
                 onClick={handleFetchPreview}
                 disabled={fetchingPreview}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
               >
                 {fetchingPreview && (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -355,7 +355,7 @@ export function CreateBookmarkDialog({
             type="button"
             onClick={handleClose}
             disabled={saving}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            className="rounded-lg border border-border px-3 sm:px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
           >
             Cancel
           </button>
@@ -364,7 +364,7 @@ export function CreateBookmarkDialog({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 sm:px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Bookmark"}
           </button>

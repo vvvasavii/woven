@@ -1,22 +1,13 @@
 "use client"; //"use client" is used because this page needs React state and useEffect
 // to fetch and display data from the backend.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { EmptyState } from "@/components/common/EmptyState";
+import { CreateCollectionDialog } from "@/components/collections/CreateCollectionDialog";
 import { FolderKanban, Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import { CollectionImageUpload } from "@/components/collections/CollectionImageUpload";
 
 interface Collection {
   id: string;
@@ -28,7 +19,7 @@ interface Collection {
   };
 }
 
-export default function CollectionsPage() {
+function CollectionsContent() {
   const searchParams = useSearchParams();
 const search = searchParams.get("q") ?? "";
   const [collections, setCollections] = useState<Collection[]>([]); //collections → data received from the API
@@ -36,15 +27,6 @@ const search = searchParams.get("q") ?? "";
   const [error, setError] = useState(""); // message shown if the request fails
   // Controls whether the Create Collection dialog is open.
   const [open, setOpen] = useState(false);
-
-  // Stores the collection name entered in the form.
-  const [name, setName] = useState("");
-
-  // Stores the optional collection description.
-  const [description, setDescription] = useState("");
-
-  // Stores the Cloudinary URL of the uploaded cover image.
-  const [coverImage, setCoverImage] = useState<string | null>(null);
 
   // Tracks whether the collection is currently being created.
   const [creating, setCreating] = useState(false);
@@ -84,11 +66,11 @@ const search = searchParams.get("q") ?? "";
     fetchCollections(); //useEffect runs the fetchCollections function when the Collections page mounts, so we can fetch the user's collections from the backend.
   }, [search]);
 
-  async function handleCreateCollection(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
+  async function handleCreateCollection(data: {
+    name: string;
+    description: string;
+    coverImage: string | null;
+  }) {
     setCreating(true);
     setCreateError("");
 
@@ -99,22 +81,22 @@ const search = searchParams.get("q") ?? "";
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
-          description: description || undefined,
-          coverImage: coverImage || undefined,
+          name: data.name,
+          description: data.description || undefined,
+          coverImage: data.coverImage || undefined,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create collection");
+        throw new Error(responseData.error || "Failed to create collection");
       }
 
       // Add the newly created collection to the existing list.
       // The API response does not contain _count, so start it at zero.
       const newCollection: Collection = {
-        ...data,
+        ...responseData,
         _count: {
           bookmarks: 0,
         },
@@ -125,11 +107,6 @@ const search = searchParams.get("q") ?? "";
         newCollection, //newCollection → the collection we just created, so we can add it to the front of the list.
         ...currentCollections, //..currentCollections → the existing collections in state, so we can add the new collection to the front of the list.
       ]);
-
-      // Reset the form after successful creation.
-      setName("");
-      setDescription("");
-      setCoverImage(null);
 
       // Close the dialog.
       setOpen(false);
@@ -150,100 +127,26 @@ const search = searchParams.get("q") ?? "";
         title="Collections"
         subtitle="Organize your bookmarks by topic"
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <span className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create Collection
-              </span>
-            </button>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Collection</DialogTitle>
-                <DialogDescription>
-                  Create a collection to organize your bookmarks.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleCreateCollection} className="space-y-5">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="collection-name"
-                    className="text-sm font-medium"
-                  >
-                    Name
-                  </label>
-
-                  <input
-                    id="collection-name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="e.g. Frontend"
-                    maxLength={100}
-                    required
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="collection-description"
-                    className="text-sm font-medium"
-                  >
-                    Description
-                  </label>
-
-                  <textarea
-                    id="collection-description"
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    placeholder="What is this collection for?"
-                    maxLength={500}
-                    rows={3}
-                    className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Cover Image</label>
-
-                  <CollectionImageUpload
-                    value={coverImage}
-                    onChange={setCoverImage}
-                  />
-                </div>
-
-                {createError && (
-                  <p className="text-sm text-destructive">{createError}</p>
-                )}
-
-                <DialogFooter>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    disabled={creating}
-                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                  >
-                    {creating ? "Creating..." : "Create"}
-                  </button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <span className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Collection</span>
+              <span className="sm:hidden">Create</span>
+            </span>
+          </button>
         }
+      />
+
+      <CreateCollectionDialog
+        open={open}
+        onOpenChange={setOpen}
+        onCreateCollection={handleCreateCollection}
+        isCreating={creating}
+        error={createError}
       />
 
       {/* Collections Grid ---  Show loading, error, collection list, or empty state depending on the current state. */}
@@ -252,7 +155,7 @@ const search = searchParams.get("q") ?? "";
       ) : error ? (
         <p className="text-destructive">{error}</p>
       ) : collections.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
@@ -271,12 +174,12 @@ const search = searchParams.get("q") ?? "";
           description="Create your first collection to start organizing your bookmarks"
           action={
             <button
-  type="button"
-  onClick={() => setOpen(true)}
-  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
->
-  Create Collection
-</button>
+              type="button"
+              onClick={() => setOpen(true)}
+              className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Create Collection
+            </button>
           }
         />
       )}
@@ -285,6 +188,14 @@ const search = searchParams.get("q") ?? "";
 }
 
 // app/collections/page.tsx is a Client Component because it needs React state, effects, and user interactions such as opening the Create Collection dialog and submitting the form.
+
+export default function CollectionsPage() {
+  return (
+    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+      <CollectionsContent />
+    </Suspense>
+  );
+}
 
 // We define a Collection TypeScript interface to describe the shape of collection data returned by our API.
 

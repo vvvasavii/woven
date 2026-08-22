@@ -2,23 +2,10 @@
 
 // Dashboard needs client-side state because it fetches real data
 // and opens the create/detail dialogs.
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import { CollectionImageUpload } from "@/components/collections/CollectionImageUpload";
-
-import {
-  Plus,
-  Search,
-  Bookmark as BookmarkIcon,
+  Plus, Bookmark as BookmarkIcon,
   LayoutDashboard,
   Heart,
   FolderKanban,
@@ -30,6 +17,7 @@ import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
 import { CreateBookmarkDialog } from "@/components/dashboard/CreateBookmarkDialog";
+import { CreateCollectionDialog } from "@/components/collections/CreateCollectionDialog";
 
 interface BookmarkData {
   id: string;
@@ -59,7 +47,7 @@ interface CollectionData {
   };
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q")?.trim().toLowerCase() ?? "";
   const [bookmarks, setBookmarks] = useState<BookmarkData[]>([]);
@@ -76,11 +64,6 @@ export default function DashboardPage() {
 
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
 
-  const [collectionName, setCollectionName] = useState("");
-  const [collectionDescription, setCollectionDescription] = useState("");
-  const [collectionCoverImage, setCollectionCoverImage] = useState<
-    string | null
-  >(null);
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [createCollectionError, setCreateCollectionError] = useState("");
 
@@ -115,11 +98,11 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  async function handleCreateCollection(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
+  async function handleCreateCollection(data: {
+    name: string;
+    description: string;
+    coverImage: string | null;
+  }) {
     setCreatingCollection(true);
     setCreateCollectionError("");
 
@@ -130,20 +113,20 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: collectionName,
-          description: collectionDescription || undefined,
-          coverImage: collectionCoverImage || undefined,
+          name: data.name,
+          description: data.description || undefined,
+          coverImage: data.coverImage || undefined,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create collection");
+        throw new Error(responseData.error || "Failed to create collection");
       }
 
       const newCollection: CollectionData = {
-        ...data,
+        ...responseData,
         _count: {
           bookmarks: 0,
         },
@@ -153,10 +136,6 @@ export default function DashboardPage() {
         newCollection,
         ...currentCollections,
       ]);
-
-      setCollectionName("");
-      setCollectionDescription("");
-      setCollectionCoverImage(null);
 
       setCreateCollectionOpen(false);
     } catch (error) {
@@ -204,17 +183,17 @@ export default function DashboardPage() {
       {/* Library Header */}
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold text-foreground mb-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">
             Your library
           </h1>
 
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             {bookmarks.length} resources across {collections.length} collections
           </p>
         </div>
 
         {/* Compact Statistics */}
-        <div className="flex flex-wrap items-center gap-6 text-sm">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Bookmarks:</span>
@@ -312,7 +291,7 @@ export default function DashboardPage() {
             </div>
 
             {collections.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {recentCollections.map((collection) => (
                   <CollectionCard
                     key={collection.id}
@@ -376,95 +355,21 @@ export default function DashboardPage() {
         }}
       />
 
-      <Dialog
+      <CreateCollectionDialog
         open={createCollectionOpen}
         onOpenChange={setCreateCollectionOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Collection</DialogTitle>
-            <DialogDescription>
-              Create a collection to organize your bookmarks.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleCreateCollection} className="space-y-5">
-            <div className="space-y-2">
-              <label
-                htmlFor="dashboard-collection-name"
-                className="text-sm font-medium"
-              >
-                Name
-              </label>
-
-              <input
-                id="dashboard-collection-name"
-                value={collectionName}
-                onChange={(event) => setCollectionName(event.target.value)}
-                placeholder="e.g. Frontend"
-                maxLength={100}
-                required
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="dashboard-collection-description"
-                className="text-sm font-medium"
-              >
-                Description
-              </label>
-
-              <textarea
-                id="dashboard-collection-description"
-                value={collectionDescription}
-                onChange={(event) =>
-                  setCollectionDescription(event.target.value)
-                }
-                placeholder="What is this collection for?"
-                maxLength={500}
-                rows={3}
-                className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cover Image</label>
-
-              <CollectionImageUpload
-                value={collectionCoverImage}
-                onChange={setCollectionCoverImage}
-              />
-            </div>
-
-            {createCollectionError && (
-              <p className="text-sm text-destructive">
-                {createCollectionError}
-              </p>
-            )}
-
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setCreateCollectionOpen(false)}
-                disabled={creatingCollection}
-                className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={creatingCollection}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-              >
-                {creatingCollection ? "Creating..." : "Create"}
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        onCreateCollection={handleCreateCollection}
+        isCreating={creatingCollection}
+        error={createCollectionError}
+      />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

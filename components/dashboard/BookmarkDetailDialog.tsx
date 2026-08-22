@@ -248,7 +248,7 @@ export function BookmarkDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-start gap-3 pr-8">
             {/* Favicon */}

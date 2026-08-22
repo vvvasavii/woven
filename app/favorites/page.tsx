@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { BookmarkDetailDialog } from "@/components/dashboard/BookmarkDetailDialog";
 import { useSearchParams } from "next/navigation";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
@@ -27,7 +27,7 @@ interface FavoriteBookmark {
   }[];
 }
 
-export default function FavoritesPage() {
+function FavoritesContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q")?.trim().toLowerCase() ?? "";
   const [favorites, setFavorites] = useState<FavoriteBookmark[]>([]);
@@ -115,7 +115,7 @@ export default function FavoritesPage() {
 
       {/* Favorites Grid */}
       {filteredFavorites.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredFavorites.map((bookmark) => (
             <BookmarkCard
               key={bookmark.id}
@@ -169,5 +169,13 @@ export default function FavoritesPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function FavoritesPage() {
+  return (
+    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+      <FavoritesContent />
+    </Suspense>
   );
 }

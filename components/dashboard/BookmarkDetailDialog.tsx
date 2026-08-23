@@ -275,56 +275,57 @@ export function BookmarkDetailDialog({
         <DialogHeader className="space-y-3 pb-1">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
-            {/* Favicon */}
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
-              {bookmark.favicon ? (
-                <img
-                  src={bookmark.favicon}
-                  alt=""
-                  className="h-6 w-6 object-contain"
-                />
-              ) : (
-                <Globe className="h-5 w-5 text-foreground/70" />
-              )}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              {/* Title */}
-              {editingField === "title" ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    value={editValue}
-                    onChange={(event) => setEditValue(event.target.value)}
-                    autoFocus
-                    maxLength={200}
-                    className="min-w-0 flex-1 rounded-lg border-2 border-border/60 bg-card/40 px-3 py-2 text-base font-medium text-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+              {/* Favicon */}
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10">
+                {bookmark.favicon ? (
+                  <img
+                    src={bookmark.favicon}
+                    alt=""
+                    className="h-6 w-6 object-contain"
                   />
+                ) : (
+                  <Globe className="h-5 w-5 text-foreground/70" />
+                )}
+              </div>
 
-                  {renderEditActions()}
-                </div>
-              ) : (
-                <div className="flex items-start gap-2">
-                  <DialogTitle className="flex-1 break-words text-xl font-semibold text-foreground">
-                    {bookmark.title}
-                  </DialogTitle>
+              <div className="min-w-0 flex-1">
+                {/* Title */}
+                {editingField === "title" ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={editValue}
+                      onChange={(event) => setEditValue(event.target.value)}
+                      autoFocus
+                      maxLength={200}
+                      className="min-w-0 flex-1 rounded-lg border-2 border-border/60 bg-card/40 px-3 py-2 text-base font-medium text-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10"
+                    />
 
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => startEditing("title")}
-                      aria-label="Edit title"
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              )}
+                    {renderEditActions()}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <DialogTitle className="min-w-0 flex-1 break-all text-xl font-semibold text-foreground">
+                      {" "}
+                      {bookmark.title}
+                    </DialogTitle>
 
-              <DialogDescription className="mt-1 break-all text-sm text-muted-foreground">
-                {bookmark.domain ?? bookmark.url}
-              </DialogDescription>
-            </div>
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => startEditing("title")}
+                        aria-label="Edit title"
+                        className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card/50 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <DialogDescription className="mt-1 break-all text-sm text-muted-foreground">
+                  {bookmark.domain ?? bookmark.url}
+                </DialogDescription>
+              </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
@@ -352,7 +353,7 @@ export function BookmarkDetailDialog({
           <div className="h-px w-full bg-gradient-to-r from-primary/30 via-border/40 to-transparent" />
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Preview image */}
           {bookmark.previewImage && (
             <div className="overflow-hidden rounded-lg border border-border/60 bg-card/40">
@@ -367,7 +368,9 @@ export function BookmarkDetailDialog({
           {/* Description */}
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <h3 className="text-sm font-medium text-foreground/90">Description</h3>
+              <h3 className="text-sm font-medium text-foreground/90">
+                Description
+              </h3>
 
               {isEditMode && editingField !== "description" && (
                 <button
@@ -394,7 +397,7 @@ export function BookmarkDetailDialog({
                 placeholder="Add a description..."
               />
             ) : (
-              <p className="break-words text-sm leading-6 text-muted-foreground">
+              <p className="break-all text-sm leading-6 text-muted-foreground">
                 {bookmark.description || "No description added."}
               </p>
             )}
@@ -403,7 +406,9 @@ export function BookmarkDetailDialog({
           {/* Notes */}
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <h3 className="text-sm font-medium text-foreground/90">My Notes</h3>
+              <h3 className="text-sm font-medium text-foreground/90">
+                My Notes
+              </h3>
 
               {isEditMode && editingField !== "notes" && (
                 <button
@@ -430,7 +435,8 @@ export function BookmarkDetailDialog({
                 placeholder="Add your notes..."
               />
             ) : (
-              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+              <p className="break-all text-sm leading-6 text-muted-foreground">
+                {" "}
                 {bookmark.notes || "No notes added."}
               </p>
             )}
@@ -442,7 +448,9 @@ export function BookmarkDetailDialog({
           {/* Collections */}
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-medium text-foreground/90">Collections</h3>
+              <h3 className="text-sm font-medium text-foreground/90">
+                Collections
+              </h3>
 
               <button
                 type="button"

@@ -8,7 +8,7 @@
 @import "shadcn/tailwind.css";
 @import "@clerk/ui/themes/shadcn.css";
 
-@custom-variant dark (&:is(.dark *));
+
 
 @theme inline {
   --color-background: var(--background);
@@ -57,7 +57,10 @@
 
 :root{
   /* Canvas */
-  --background: hsl(39, 55%, 75%); /*card clr */
+  --background: hsl(39, 55%, 80%); /*bg clr+card bg clr*/
+
+  /* --background: hsl(38, 41%, 69%); */
+
   --foreground: hsl(26, 22%, 15%); /* big headings*/
 
   /* Cards match the active sidebar accent */
@@ -86,7 +89,7 @@
   --secondary-foreground: var(--foreground);
 
   --muted: hsl(37 20% 87%);
-  --muted-foreground: hsl(30, 15%, 24%); /*-resoiuce across - lib text*/
+  --muted-foreground: hsl(30, 15%, 1%); /*-resoiuce across - lib text*/
 
   --accent: hsl(26 28% 84%);
   --accent-foreground: hsl(23 24% 20%);
@@ -108,6 +111,14 @@
   --sidebar-ring: var(--primary);
 
   --radius: .9rem;
+}
+
+.font-elsie {
+  font-family: var(--font-elsie);
+}
+
+.font-crimson {
+  font-family: var(--font-crimson);
 }
 
 @layer base{

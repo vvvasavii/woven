@@ -72,28 +72,43 @@ function TopNavContent() {
               </SignUpButton>
             </div>
           ) : (
-            <UserButton
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: {
-                    width: "35px",
-                    height: "35px",
-                    border: "2px solid rgba(255, 255, 255, 0.4)",
-                    borderRadius: "9999px",
-                  },
-                },
-              }}
-            />
+<UserButton
+  appearance={{
+    variables: {
+      colorForeground: "#ffffff",
+      colorMutedForeground: "#d6c5b8",
+      colorDanger: "#ff2400",
+    },
+
+    elements: {
+      userButtonAvatarBox: {
+        width: "35px",
+        height: "35px",
+        border: "2px solid rgba(255, 255, 255, 0.4)",
+        borderRadius: "9999px",
+      },
+    },
+  }}
+  userProfileProps={{
+    appearance: {
+      variables: {
+        colorForeground: "#ffffff",
+        colorMutedForeground: "#d6c5b8",
+        colorDanger: "#ff2400",
+      },
+    },
+  }}
+/>
           )}
         </div>
       </header>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-sidebar">
+        <div className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[75vw] bg-sidebar border-r border-sidebar-border">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-              <span className="text-xl font-semibold text-sidebar-foreground">
+              <span className="font-elsie text-xl font-semibold text-sidebar-foreground">
                 Woven
               </span>
               <button

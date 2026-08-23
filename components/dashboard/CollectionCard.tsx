@@ -25,7 +25,7 @@ export function CollectionCard({
     // Clicking it navigates to the page for that specific collection.
     <Link
       href={`/collections/${id}`}
-      className="group block bg-background/20 shadow-amber-950 border border-border rounded-lg p-3 sm:p-4 hover:-translate-y-0.5 hover:shadow-md hover:bg-card/60 transition-all duration-200"
+      className="group block bg-background/70 shadow-sm shadow-amber-950 border-border rounded-lg p-3 sm:p-4 hover:-translate-y-0.5 hover:shadow-md hover:bg-card/80 transition-all duration-200"
     >
       <div className="flex items-start gap-3 mb-2">
         {coverImage ? (
@@ -42,15 +42,15 @@ export function CollectionCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm sm:text-base font-medium text-foreground truncate">{name}</h3>
-            <ChevronRight className="h-4 w-4 text-foreground/40 group-hover:text-foreground/70 transition-colors flex-shrink-0 ml-2" />
+            <h3 className="text-sm sm:text-base font-medium text-foreground truncate group-hover:text-fuchsia-100">{name}</h3>
+            <ChevronRight className="h-4 w-4 text-foreground/40 group-hover:text-fuchsia-100 transition-colors flex-shrink-0 ml-2" />
           </div>
         </div>
       </div>
 
       <div className="ml-[3.75rem] sm:ml-0 sm:pl-8">
         {/* Displays the number of bookmarks in this collection. */}
-        <p className="text-xs sm:text-sm text-muted-foreground mb-1">{count} bookmarks</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mb-1 group-hover:text-fuchsia-100">{count} bookmarks</p>
 
         {/* Only displays the description if one exists. */}
         {description && (

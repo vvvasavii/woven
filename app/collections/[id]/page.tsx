@@ -238,7 +238,7 @@ export default function CollectionPage({
         </h1>
 
         {collection.description && (
-          <p className="mt-2 text-muted-foreground">{collection.description}</p>
+          <p className="mt-2 break-words text-muted-foreground">{collection.description}</p>
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">

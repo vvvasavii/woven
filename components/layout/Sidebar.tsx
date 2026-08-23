@@ -26,7 +26,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
-        <span className="text-xl font-semibold text-sidebar-foreground">Woven</span>
+        <span className="font-elsie text-xl font-semibold text-sidebar-foreground">Woven</span>
       </div>
 
       {/* Navigation */}

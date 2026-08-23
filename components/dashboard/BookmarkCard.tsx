@@ -66,7 +66,7 @@ export function BookmarkCard({
           onClick?.();
         }
       }}
-      className="group bg-background/30 shadow-amber-950 border border-border rounded-lg p-3 sm:p-4 hover:-translate-y-0.5 hover:shadow-md hover:bg-card/60 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+      className="group bg-background/70 shadow-sm shadow-amber-950 border-border rounded-lg p-3 sm:p-4 hover:-translate-y-0.5 hover:shadow-md hover:bg-card/80 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
     >
       <div className="flex items-start gap-3 sm:gap-4">
         {/* Favicon */}
@@ -78,7 +78,7 @@ export function BookmarkCard({
               className="h-6 w-6 object-contain"
             />
           ) : (
-            <Globe className="h-5 w-5 text-foreground/70" />
+            <Globe className="h-5 w-5 text-foreground/80 group-hover:text-fuchsia-100 "  />
           )}
         </div>
 
@@ -93,18 +93,18 @@ export function BookmarkCard({
               // Prevent the card's onClick from running.
               event.stopPropagation();
             }}
-            className="inline-block max-w-full text-sm sm:text-base font-medium text-foreground break-words mb-1 hover:underline"
+            className="inline-block max-w-full text-sm sm:text-base font-medium text-foreground break-words mb-1 group-hover:text-fuchsia-100 hover:underline"
           >
             {title}
           </Link>
 
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground group-hover:text-fuchsia-100 ">
             <div className="flex items-center gap-1.5 min-w-0">
               <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{domain}</span>
             </div>
 
-            <span className="text-muted-foreground/40 flex-shrink-0">
+            <span className="text-muted-foreground/40 flex-shrink-0 group-hover:text-fuchsia-100 ">
               •
             </span>
 

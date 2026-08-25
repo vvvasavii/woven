@@ -8,13 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  BookmarkPlus,
-  Check,
-  ExternalLink,
-  Loader2,
-  X,
-} from "lucide-react";
+import { BookmarkPlus, Check, ExternalLink, Loader2, X } from "lucide-react";
 
 interface Collection {
   id: string;
@@ -42,9 +36,9 @@ export function CreateBookmarkDialog({
 
   const [notes, setNotes] = useState("");
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [selectedCollectionIds, setSelectedCollectionIds] = useState<
-    string[]
-  >([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
+    [],
+  );
 
   const [fetchingPreview, setFetchingPreview] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,6 +49,9 @@ export function CreateBookmarkDialog({
     if (!open) {
       return;
     }
+
+    // Start with a fresh form every time the dialog opens.
+    resetForm();
 
     async function fetchCollections() {
       try {
@@ -72,7 +69,7 @@ export function CreateBookmarkDialog({
       }
     }
 
-    fetchCollections()
+    fetchCollections();
   }, [open]);
 
   // Fetch metadata for the entered URL.
@@ -97,7 +94,7 @@ export function CreateBookmarkDialog({
       });
 
       const data = await response.json();
-            console.log("Preview data received by frontend:", data);
+      console.log("Preview data received by frontend:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch link preview");
@@ -113,9 +110,7 @@ export function CreateBookmarkDialog({
       console.error("Error fetching link preview:", error);
 
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch link preview",
+        error instanceof Error ? error.message : "Failed to fetch link preview",
       );
     } finally {
       setFetchingPreview(false);
@@ -131,6 +126,19 @@ export function CreateBookmarkDialog({
 
       return [...currentIds, collectionId];
     });
+  }
+
+  // Reset all bookmark form fields to their initial values.
+  function resetForm() {
+    setUrl("");
+    setTitle("");
+    setDescription("");
+    setDomain("");
+    setFavicon(null);
+    setPreviewImage(null);
+    setNotes("");
+    setSelectedCollectionIds([]);
+    setError("");
   }
 
   // Create the bookmark using the reviewed metadata.
@@ -175,15 +183,16 @@ export function CreateBookmarkDialog({
       // Tell the parent page to refresh its bookmark data.
       onBookmarkCreated();
 
+      // Reset the form after successful creation.
+      resetForm();
+
       // Close the dialog after successful creation.
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating bookmark:", error);
 
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to create bookmark",
+        error instanceof Error ? error.message : "Failed to create bookmark",
       );
     } finally {
       setSaving(false);
@@ -196,15 +205,7 @@ export function CreateBookmarkDialog({
     }
 
     // Clear the form when the dialog closes.
-    setUrl("");
-    setTitle("");
-    setDescription("");
-    setDomain("");
-    setFavicon(null);
-    setPreviewImage(null);
-    setNotes("");
-    setSelectedCollectionIds([]);
-    setError("");
+    resetForm();
 
     onOpenChange(false);
   }

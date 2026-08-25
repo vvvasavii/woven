@@ -20,14 +20,22 @@ export async function POST(request: Request) {
     // Automatically cancel the request after 10 seconds.
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-    });
+    let response: Response;
 
-    console.log("Link preview fetch status:", response.status, response.statusText);
+    try {
+      response = await fetch(url, {
+        signal: controller.signal,
+      });
 
-    // Clear the timeout once the request finishes.
-    clearTimeout(timeout);
+      console.log(
+        "Link preview fetch status:",
+        response.status,
+        response.statusText,
+      );
+    } finally {
+      // Always clear the timeout after the fetch finishes or fails.
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       // Some websites block server-side requests or return errors such as 403/429.
@@ -50,15 +58,22 @@ export async function POST(request: Request) {
     const $ = cheerio.load(html); //This parses the HTML and gives us the $ selector interface.
 
     // 5. Extract metadata
-    const title =
-  $('meta[property="og:title"]').attr("content") ||
-  $("title").text().trim() ||
-  new URL(url).hostname.replace(/^www\./, "") ||
-  null; //Try og:title
-    //       ↓
-    // if unavailable, try <title>
-    //       ↓
-    // domain name if metadata is unavailable.
+    // Get the title from Open Graph metadata, then <title>, then the domain as a fallback.
+    const rawTitle =
+      $('meta[property="og:title"]').attr("content") ||
+      $("title").text().trim() ||
+      new URL(url).hostname.replace(/^www\./, "") ||
+      null;
+
+    // Normalize whitespace and keep the title nullable if no title was found.
+    const cleanedTitle = rawTitle?.replace(/\s+/g, " ").trim() || null;
+
+    // Limit long titles to 120 characters and add an ellipsis when truncated.
+    const title = cleanedTitle
+      ? cleanedTitle.length > 120
+        ? cleanedTitle.slice(0, 117) + "..."
+        : cleanedTitle
+      : null;
 
     const description =
       $('meta[property="og:description"]').attr("content") ||

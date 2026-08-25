@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 const createBookmarkSchema = z.object({
   url: z.string().url(),
-  title: z.string().trim().min(1).max(200),
+  title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(1000).optional(),
   domain: z.string().trim().optional(),
   favicon: z.string().url().optional(),

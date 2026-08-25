@@ -1,9 +1,10 @@
-import {ClerkProvider} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 import type { Metadata } from "next";
-import { Elsie_Swash_Caps, Crimson_Text } from "next/font/google";import "./globals.css";
+import { Elsie_Swash_Caps, Crimson_Text } from "next/font/google";
+import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
-
+import { Analytics } from "@vercel/analytics/next";
 
 const elsie = Elsie_Swash_Caps({
   variable: "--font-elsie",
@@ -33,20 +34,20 @@ export default function RootLayout({
       className={`${elsie.variable} ${crimson.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <ClerkProvider 
+        <ClerkProvider
           appearance={{
             theme: shadcn,
             variables: {
-  colorForeground: "#3b2923",
-  colorMutedForeground: "#6f625b",
-  colorPrimary: "#a85f43",
-  colorDanger: "#a84f42",
-},
+              colorForeground: "#3b2923",
+              colorMutedForeground: "#6f625b",
+              colorPrimary: "#a85f43",
+              colorDanger: "#a84f42",
+            },
             elements: {
               rootBox: {
                 color: "var(--foreground)",
               },
-              
+
               card: {
                 background: "var(--popover)",
                 color: "var(--foreground)",
@@ -157,20 +158,20 @@ export default function RootLayout({
               userButtonPopoverFooter: {
                 color: "var(--primary-foreground)",
               },
-              
+
               badge: {
-  background: "#a85f43",
-  color: "#ffffff",
-  fontWeight: "600",
-},
+                background: "#a85f43",
+                color: "#ffffff",
+                fontWeight: "600",
+              },
 
-modalCloseButton: {
-  color: "#3b2923",
-},
+              modalCloseButton: {
+                color: "#3b2923",
+              },
 
-modalCloseButtonIcon: {
-  color: "#3b2923",
-},
+              modalCloseButtonIcon: {
+                color: "#3b2923",
+              },
               // Account page elements
               profilePage: {
                 color: "var(--primary-foreground)",
@@ -288,7 +289,7 @@ modalCloseButtonIcon: {
                 color: "var(--primary-foreground)",
                 borderColor: "var(--sidebar-border)",
               },
-        
+
               // Additional targeting for delete account button
               actionButtonDanger: {
                 color: "var(--primary-foreground)",
@@ -321,6 +322,7 @@ modalCloseButtonIcon: {
           }}
         >
           <AppShell>{children}</AppShell>
+          <Analytics />
         </ClerkProvider>
       </body>
     </html>

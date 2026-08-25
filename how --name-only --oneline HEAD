@@ -1,5 +1,0 @@
-[33m1f8ca3f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m added analytics
- app/layout.tsx    | 48 [32m+++++++++++++++++++++++++[m[31m-----------------------[m
- package-lock.json | 43 [32m+++++++++++++++++++++++++++++++++++++++++++[m
- package.json      |  1 [32m+[m
- 3 files changed, 69 insertions(+), 23 deletions(-)

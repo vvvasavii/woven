@@ -5,7 +5,8 @@
 import { useEffect, useState, useMemo, Suspense } from "react";
 
 import {
-  Plus, Bookmark as BookmarkIcon,
+  Plus,
+  Bookmark as BookmarkIcon,
   LayoutDashboard,
   Heart,
   FolderKanban,
@@ -336,6 +337,17 @@ function DashboardContent() {
 
           setSelectedBookmark(updatedBookmark);
         }}
+        onBookmarkDeleted={(deletedBookmarkId) => {
+          // Remove the deleted bookmark from the dashboard immediately.
+          setBookmarks((currentBookmarks) =>
+            currentBookmarks.filter(
+              (bookmark) => bookmark.id !== deletedBookmarkId,
+            ),
+          );
+
+          // Close the detail dialog after deletion.
+          setSelectedBookmark(null);
+        }}
       />
 
       {/* Create bookmark dialog */}
@@ -368,7 +380,9 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+    <Suspense
+      fallback={<div className="text-muted-foreground">Loading...</div>}
+    >
       <DashboardContent />
     </Suspense>
   );

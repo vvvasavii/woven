@@ -179,6 +179,17 @@ function BookmarksContent() {
           // Keep the detail dialog showing the latest bookmark data.
           setSelectedBookmark(updatedBookmark);
         }}
+        onBookmarkDeleted={(deletedBookmarkId) => {
+          // Remove the deleted bookmark from the page immediately.
+          setBookmarks((currentBookmarks) =>
+            currentBookmarks.filter(
+              (bookmark) => bookmark.id !== deletedBookmarkId,
+            ),
+          );
+
+          // Close the detail dialog after deletion.
+          setSelectedBookmark(null);
+        }}
       />
 
       <CreateBookmarkDialog
@@ -202,9 +213,10 @@ function BookmarksContent() {
 
 export default function BookmarksPage() {
   return (
-    <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+    <Suspense
+      fallback={<div className="text-muted-foreground">Loading...</div>}
+    >
       <BookmarksContent />
     </Suspense>
   );
 }
-

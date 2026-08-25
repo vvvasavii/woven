@@ -167,6 +167,19 @@ function FavoritesContent() {
           // Keep the dialog showing the latest data.
           setSelectedBookmark(updatedBookmark);
         }}
+
+                onBookmarkDeleted={(deletedBookmarkId) => {
+          // Remove the deleted bookmark from the favorites list immediately.
+          setFavorites((currentFavorites) =>
+            currentFavorites.filter(
+              (bookmark) => bookmark.id !== deletedBookmarkId,
+            ),
+          );
+
+          // Close the detail dialog after deletion.
+          setSelectedBookmark(null);
+        }}
+        
       />
     </div>
   );

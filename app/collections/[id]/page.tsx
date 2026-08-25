@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { ArrowLeft } from "lucide-react";
 
 import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
@@ -50,6 +51,9 @@ export default function CollectionPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const search = searchParams.get("q")?.trim().toLowerCase() ?? "";
 
   // Stores the collection and its bookmarks returned by the backend.
   const [collection, setCollection] = useState<Collection | null>(null);
@@ -130,6 +134,10 @@ export default function CollectionPage({
       </div>
     );
   }
+
+  const filteredBookmarks = collection.bookmarks.filter(
+    ({ bookmark }) => !search || bookmark.title.toLowerCase().includes(search),
+  );
 
   async function handleUpdateCollection(data: {
     name: string;
@@ -238,7 +246,9 @@ export default function CollectionPage({
         </h1>
 
         {collection.description && (
-          <p className="mt-2 break-words text-muted-foreground">{collection.description}</p>
+          <p className="mt-2 break-words text-muted-foreground">
+            {collection.description}
+          </p>
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -290,11 +300,11 @@ export default function CollectionPage({
         error={deleteError}
       />
 
-      {collection.bookmarks.length > 0 ? (
+      {filteredBookmarks.length > 0 ? (
         <div className="space-y-4">
           {/* Reuse the main BookmarkCard so collection bookmarks behave
         exactly like bookmarks elsewhere in Woven. */}
-          {collection.bookmarks.map(({ bookmark }) => (
+          {filteredBookmarks.map(({ bookmark }) => (
             <BookmarkCard
               key={bookmark.id}
               id={bookmark.id}
@@ -324,7 +334,9 @@ export default function CollectionPage({
         </div>
       ) : (
         <div className="text-muted-foreground">
-          No bookmarks in this collection yet.
+          {search
+            ? "No bookmarks match your search."
+            : "No bookmarks in this collection yet."}
         </div>
       )}
 
@@ -359,6 +371,25 @@ export default function CollectionPage({
 
           // Keep the dialog showing the updated bookmark.
           setSelectedBookmark(updatedBookmark);
+        }}
+
+                onBookmarkDeleted={(deletedBookmarkId) => {
+          // Remove the deleted bookmark from this collection immediately.
+          setCollection((currentCollection) => {
+            if (!currentCollection) {
+              return currentCollection;
+            }
+
+            return {
+              ...currentCollection,
+              bookmarks: currentCollection.bookmarks.filter(
+                ({ bookmark }) => bookmark.id !== deletedBookmarkId,
+              ),
+            };
+          });
+
+          // Close the detail dialog after deletion.
+          setSelectedBookmark(null);
         }}
       />
     </div>

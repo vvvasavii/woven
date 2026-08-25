@@ -11,7 +11,9 @@ function TopNavContent() {
   const { isSignedIn } = useAuth();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,7 +51,6 @@ function TopNavContent() {
             <Menu className="h-5 w-5" />
           )}
         </button>
-
         {/* Search Bar - hidden on home page */}
         {pathname !== "/" && (
           <div className="flex-1 max-w-md mx-4">
@@ -58,7 +59,7 @@ function TopNavContent() {
               <input
                 type="text"
                 placeholder="Search..."
-                defaultValue={searchParams.get("q") ?? ""}
+                value={searchParams.get("q") ?? ""}
                 onChange={(event) => {
                   const value = event.target.value;
 
@@ -70,7 +71,11 @@ function TopNavContent() {
                     params.delete("q");
                   }
 
-                  router.push(`${pathname}?${params.toString()}`);
+                  const queryString = params.toString();
+
+                  router.replace(
+                    queryString ? `${pathname}?${queryString}` : pathname,
+                  );
                 }}
                 className="w-full h-10 pl-10 pr-4 bg-slate-950 border border-input rounded-lg text-sm text-gray-400 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
               />
@@ -78,7 +83,9 @@ function TopNavContent() {
           </div>
         )}
         {/* Right Actions */}
-        <div className={`flex items-center gap-3 ${pathname === "/" ? "ml-auto" : ""}`}>
+        <div
+          className={`flex items-center gap-3 ${pathname === "/" ? "ml-auto" : ""}`}
+        >
           {/* Auth Controls */}
           {!isSignedIn ? (
             <div className="flex items-center gap-2">

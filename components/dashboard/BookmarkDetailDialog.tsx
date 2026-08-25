@@ -8,7 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, ExternalLink, Globe, Heart, Pencil, X } from "lucide-react";
+import {
+  Check,
+  ExternalLink,
+  Globe,
+  Heart,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
 
 interface Collection {
   id: string;
@@ -36,6 +44,9 @@ interface BookmarkDetailDialogProps {
 
   // Lets the parent page update its bookmark list after changes.
   onBookmarkUpdated?: (bookmark: BookmarkDetailDialogProps["bookmark"]) => void;
+
+  // Lets the parent page remove the bookmark after deletion.
+  onBookmarkDeleted?: (bookmarkId: string) => void;
 }
 
 type EditableField = "title" | "description" | "notes" | null;
@@ -45,6 +56,7 @@ export function BookmarkDetailDialog({
   open,
   onOpenChange,
   onBookmarkUpdated,
+  onBookmarkDeleted,
 }: BookmarkDetailDialogProps) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
@@ -69,6 +81,9 @@ export function BookmarkDetailDialog({
 
   // Stores errors from bookmark field updates.
   const [editError, setEditError] = useState("");
+
+  // Tracks whether the bookmark is currently being deleted.
+  const [deleting, setDeleting] = useState(false);
 
   // Load the user's collections when the collection selector is opened.
   useEffect(() => {
@@ -237,6 +252,39 @@ export function BookmarkDetailDialog({
       setCollectionError("Failed to update collections");
     } finally {
       setSavingCollections(false);
+    }
+  }
+
+  async function deleteBookmark() {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this bookmark?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+
+      const response = await fetch(`/api/bookmarks/${currentBookmark.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete bookmark");
+      }
+
+      // Tell the parent page to remove this bookmark from its local list.
+      onBookmarkDeleted?.(currentBookmark.id);
+
+      // Close the detail dialog after successful deletion.
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting bookmark:", error);
+      setEditError("Failed to delete bookmark");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -565,6 +613,17 @@ export function BookmarkDetailDialog({
             <ExternalLink className="h-4 w-4" />
             Open Website
           </a>
+
+          {/* Delete bookmark */}
+          <button
+            type="button"
+            onClick={deleteBookmark}
+            disabled={deleting}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/40 px-4 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-destructive/30"
+          >
+            <Trash2 className="h-4 w-4" />
+            {deleting ? "Deleting..." : "Delete Bookmark"}
+          </button>
         </div>
       </DialogContent>
     </Dialog>

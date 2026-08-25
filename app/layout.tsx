@@ -35,6 +35,8 @@ export default function RootLayout({
     >
       <body className="min-h-full">
         <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
           appearance={{
             theme: shadcn,
             variables: {
@@ -43,6 +45,7 @@ export default function RootLayout({
               colorPrimary: "#a85f43",
               colorDanger: "#a84f42",
             },
+            
             elements: {
               rootBox: {
                 color: "var(--foreground)",
@@ -274,7 +277,7 @@ export default function RootLayout({
                 color: "var(--primary-foreground)",
               },
               alertText: {
-                color: "var(--primary-foreground)",
+                color: "text-red-600",
               },
               alertDescription: {
                 color: "var(--primary-foreground)",

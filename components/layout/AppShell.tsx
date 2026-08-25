@@ -15,7 +15,7 @@ export function AppShell({ children }: AppShellProps) {
 
         {/* Fixed background keeps the image scale consistent across pages */}
         <div
-          className="fixed inset-x-0 top-16 bottom-0 bg-cover bg-center bg-no-repeat lg:left-64"
+          className="fixed top-0 right-0 left-0 h-[100svh] bg-cover bg-center bg-no-repeat lg:left-64"
           style={{ backgroundImage: "url('woven-bg7.png')" }}
         />
 

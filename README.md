@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Woven
 
-## Getting Started
+> A personal knowledge library for saving, organizing, and revisiting valuable online resources.
 
-First, run the development server:
+**Woven** is a full-stack bookmark manager built with Next.js, PostgreSQL, Prisma, and Clerk. It lets users save resources, automatically generate rich link previews, organize bookmarks into multiple collections, add personal notes, mark important resources as favorites, and quickly find saved resources.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**[Live Demo](https://woven-mu-nine.vercel.app/)** · **[GitHub](https://github.com/vvvasavii/woven)**
+
+<img width="1920" height="913" alt="image" src="https://github.com/user-attachments/assets/762aa72f-44d3-49a2-a972-8751ccb06311" />
+
+
+
+
+
+---
+
+## ✨ Features
+
+* **Smart Link Preview** — automatically extracts a website's title, description, domain, favicon, and preview image when available.
+* **Collections** — organize bookmarks into reusable collections.
+* **Many-to-Many Organization** — one bookmark can belong to multiple collections without creating duplicate records.
+* **Personal Notes** — add context and reminders to saved resources.
+* **Favorites** — mark important bookmarks for quick access.
+* **Contextual Search** — search behavior adapts to the page:
+
+  * Dashboard → bookmark titles + collection names
+  * Bookmarks → bookmark titles
+  * Collections → collection names
+  * Favorites → favorite bookmark titles
+* **Responsive UI** — designed for desktop, tablet, and mobile.
+
+---
+
+## 🔗 Smart Link Preview
+
+Woven's signature feature automatically retrieves and parses webpage metadata before a bookmark is saved.
+
+```text
+URL
+ ↓
+Zod validation
+ ↓
+Server-side fetch
+ ↓
+HTML parsing with Cheerio
+ ↓
+Open Graph / standard metadata extraction
+ ↓
+Resolve relative asset URLs
+ ↓
+Preview returned to client
+ ↓
+User reviews or edits metadata
+ ↓
+Bookmark saved
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The preview can include:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* Website title
+* Description
+* Domain
+* Favicon
+* Preview image
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Metadata fetching is kept separate from bookmark creation, allowing users to review and edit generated information before saving.
 
-## Learn More
+The metadata endpoint also includes a request timeout and graceful handling for websites that reject or fail server-side requests.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🏗️ Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Woven uses Next.js for the application layer, with Route Handlers handling backend operations. Clerk manages authentication, while application-level user ownership enforces authorization. Prisma connects the application to PostgreSQL.
 
-## Deploy on Vercel
+```text
+Next.js
+   │
+   ├── Clerk
+   ├── Zod
+   └── Prisma
+          │
+          ▼
+      PostgreSQL
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Bookmarks and collections use a many-to-many relationship through a `BookmarkCollection` join table, allowing one bookmark to belong to multiple collections without duplication.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🛠️ Tech Stack
+
+| Layer            | Technology           |
+| ---------------- | -------------------- |
+| Framework        | Next.js              |
+| Language         | TypeScript           |
+| UI               | React + Tailwind CSS |
+| Components       | shadcn/ui            |
+| Authentication   | Clerk                |
+| Database         | PostgreSQL           |
+| ORM              | Prisma               |
+| Validation       | Zod                  |
+| Metadata Parsing | Cheerio              |
+| Deployment       | Vercel               |
+
+---
+
+## 💡 Engineering Highlights
+
+* **Relational Data Modeling** — `BookmarkCollection` enables a normalized many-to-many relationship between bookmarks and collections.
+* **User-Level Authorization** — resources are associated with their owning user, preventing access to another user's data.
+* **Server-Side Metadata Extraction** — external webpage metadata is fetched and parsed on the server before being presented to the client.
+* **Runtime Validation** — Zod validates incoming data before it reaches application logic and database operations.
+* **Contextual Search** — search behavior adapts to the current page while remaining scoped to the authenticated user's resources.
+* **Intentional Architecture** — the application avoids unnecessary global state and infrastructure in favor of a focused Next.js architecture.
+
+---
+
+## 🔮 Future Scope
+
+Potential future additions include a browser extension, AI-powered resource summaries, shared collections, bookmark import/export, collaboration, reading progress, and dead-link detection.
+
+These features are intentionally outside the current product scope to keep the core application focused.
+
+---
+
+## 👩🏽‍💻 Built By
+
+**Vasavi Dwivedi**
+
+Built with Next.js · TypeScript · PostgreSQL · Prisma · Clerk

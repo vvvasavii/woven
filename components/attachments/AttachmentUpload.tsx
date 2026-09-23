@@ -8,6 +8,8 @@ interface AttachmentData {
   url: string;
   fileType: string;
   fileSize: number;
+  cloudinaryPublicId: string;
+  cloudinaryResourceType: string;
 }
 
 interface AttachmentUploadProps {
@@ -40,6 +42,8 @@ export function AttachmentUpload({
             url: result.info.secure_url,
             fileType: result.info.format,
             fileSize: result.info.bytes,
+            cloudinaryPublicId: result.info.public_id,
+            cloudinaryResourceType: result.info.resource_type,
           };
 
           onUpload(attachment);

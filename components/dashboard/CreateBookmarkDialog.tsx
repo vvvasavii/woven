@@ -8,11 +8,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BookmarkPlus, Check, ExternalLink, Loader2, X } from "lucide-react";
+import {
+  BookmarkPlus,
+  Check,
+  ExternalLink,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
+  X,
+} from "lucide-react";
+
+import { AttachmentUpload } from "@/components/attachments/AttachmentUpload";
 
 interface Collection {
   id: string;
   name: string;
+}
+
+interface AttachmentData {
+  filename: string;
+  url: string;
+  fileType: string;
+  fileSize: number;
+  cloudinaryPublicId: string;
+  cloudinaryResourceType: string;
 }
 
 interface CreateBookmarkDialogProps {
@@ -39,6 +58,10 @@ export function CreateBookmarkDialog({
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>(
     [],
   );
+
+  // Stores files uploaded while the user is preparing the bookmark.
+  // These are not saved to the database yet.
+  const [attachments, setAttachments] = useState<AttachmentData[]>([]);
 
   const [fetchingPreview, setFetchingPreview] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -128,6 +151,27 @@ export function CreateBookmarkDialog({
     });
   }
 
+  // Remove an uploaded attachment from the current bookmark draft.
+  // This only removes it from React state for now.
+  function removeAttachment(index: number) {
+    setAttachments((currentAttachments) =>
+      currentAttachments.filter((_, currentIndex) => currentIndex !== index),
+    );
+  }
+
+  // Convert bytes into a human-readable file size.
+  function formatFileSize(bytes: number) {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   // Reset all bookmark form fields to their initial values.
   function resetForm() {
     setUrl("");
@@ -138,6 +182,7 @@ export function CreateBookmarkDialog({
     setPreviewImage(null);
     setNotes("");
     setSelectedCollectionIds([]);
+    setAttachments([]);
     setError("");
   }
 
@@ -178,6 +223,49 @@ export function CreateBookmarkDialog({
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to create bookmark");
+      }
+
+      // The bookmark now exists, so we have its database ID.
+      // We use this ID to create BookmarkAttachment relationships.
+      const bookmarkId = data.id;
+
+      for (const attachment of attachments) {
+        // First create the Attachment database record.
+        const attachmentResponse = await fetch("/api/attachments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(attachment),
+        });
+
+        const attachmentData = await attachmentResponse.json();
+
+        if (!attachmentResponse.ok) {
+          throw new Error(attachmentData.error || "Failed to save attachment");
+        }
+
+        // Then connect the attachment to the newly created bookmark.
+        const relationshipResponse = await fetch(
+          `/api/bookmarks/${bookmarkId}/attachments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              attachmentId: attachmentData.id,
+            }),
+          },
+        );
+
+        const relationshipData = await relationshipResponse.json();
+
+        if (!relationshipResponse.ok) {
+          throw new Error(
+            relationshipData.error || "Failed to attach file to bookmark",
+          );
+        }
       }
 
       // Tell the parent page to refresh its bookmark data.
@@ -494,6 +582,90 @@ export function CreateBookmarkDialog({
                 focus:ring-2 focus:ring-primary/10
               "
             />
+          </div>
+
+          {/* Attachments */}
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-foreground/90">
+                Attachments
+              </label>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add supporting PDFs or images to this bookmark. Max 10 MB per
+                file.
+              </p>
+            </div>
+
+            <AttachmentUpload
+              onUpload={(attachment) => {
+                setAttachments((currentAttachments) => [
+                  ...currentAttachments,
+                  attachment,
+                ]);
+              }}
+            />
+
+            {attachments.length > 0 && (
+              <div className="space-y-2">
+                {attachments.map((attachment, index) => {
+                  const isPdf = attachment.fileType === "pdf";
+
+                  return (
+                    <div
+                      key={`${attachment.cloudinaryPublicId}-${index}`}
+                      className="
+              flex items-center gap-3
+              rounded-lg
+              border border-border/60
+              bg-card/40
+              p-3
+            "
+                    >
+                      {/* File type icon */}
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        {isPdf ? (
+                          <FileText className="h-4 w-4" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4" />
+                        )}
+                      </div>
+
+                      {/* File information */}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {attachment.filename}
+                        </p>
+
+                        <p className="text-xs text-muted-foreground">
+                          {attachment.fileType.toUpperCase()} ·{" "}
+                          {formatFileSize(attachment.fileSize)}
+                        </p>
+                      </div>
+
+                      {/* Remove attachment */}
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(index)}
+                        disabled={saving}
+                        aria-label={`Remove ${attachment.filename}`}
+                        className="
+                shrink-0 rounded-md p-1.5
+                text-muted-foreground
+                transition-colors
+                hover:bg-destructive/10
+                hover:text-destructive
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {error && (

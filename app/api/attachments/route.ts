@@ -9,6 +9,8 @@ const attachmentSchema = z.object({
   url: z.string().url(),
   fileType: z.string().min(1),
   fileSize: z.number().int().positive(),
+  cloudinaryPublicId: z.string().min(1),
+  cloudinaryResourceType: z.string().min(1),
 });
 
 export async function POST(request: Request) {
@@ -27,14 +29,16 @@ export async function POST(request: Request) {
     }
 
     const attachment = await prisma.attachment.create({
-      data: {
-        filename: result.data.filename,
-        url: result.data.url,
-        fileType: result.data.fileType,
-        fileSize: result.data.fileSize,
-        userId: user.id,
-      },
-    });
+  data: {
+    filename: result.data.filename,
+    url: result.data.url,
+    fileType: result.data.fileType,
+    fileSize: result.data.fileSize,
+    cloudinaryPublicId: result.data.cloudinaryPublicId,
+    cloudinaryResourceType: result.data.cloudinaryResourceType,
+    userId: user.id,
+  },
+});
 
     return NextResponse.json(attachment, { status: 201 });
   } catch (error) {

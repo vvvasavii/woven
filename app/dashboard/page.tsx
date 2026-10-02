@@ -30,6 +30,19 @@ interface BookmarkData {
   previewImage: string | null;
   notes: string | null;
   favorite: boolean;
+   attachments: {
+    bookmarkId: string;
+    attachmentId: string;
+    attachment: {
+      id: string;
+      filename: string;
+      url: string;
+      fileType: string;
+      fileSize: number;
+      cloudinaryPublicId: string;
+      cloudinaryResourceType: string;
+    };
+  }[];
   collections: {
     collection: {
       id: string;

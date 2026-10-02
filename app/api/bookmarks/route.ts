@@ -268,6 +268,11 @@ export async function GET(request: Request) {
             collection: true,
           },
         },
+        attachments: {
+          include: {
+            attachment: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

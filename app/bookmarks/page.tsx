@@ -12,6 +12,16 @@ import { BookmarkCard } from "@/components/dashboard/BookmarkCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Bookmark, Plus } from "lucide-react";
 
+interface AttachmentData {
+  id: string;
+  filename: string;
+  url: string;
+  fileType: string;
+  fileSize: number;
+  cloudinaryPublicId: string;
+  cloudinaryResourceType: string;
+}
+
 // Describes the bookmark shape returned by GET /api/bookmarks.
 interface BookmarkData {
   // actyally this what we intend to use from the get api,and even if there were some extra fields in get api,we dont need to use them all,,,so alli mean is that we can ignore any extra fields that we dont need to use in our frontend.
@@ -32,7 +42,14 @@ interface BookmarkData {
       name: string;
     };
   }[];
+
+  attachments: {
+  bookmarkId: string;
+  attachmentId: string;
+  attachment: AttachmentData;
+}[];
 }
+
 
 function BookmarksContent() {
   const searchParams = useSearchParams();

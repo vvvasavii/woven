@@ -1,5 +1,6 @@
 "use client";
 
+import { AttachmentUpload } from "@/components/attachments/AttachmentUpload";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -23,6 +24,16 @@ interface Collection {
   name: string;
 }
 
+interface AttachmentData {
+  id: string;
+  filename: string;
+  url: string;
+  fileType: string;
+  fileSize: number;
+  cloudinaryPublicId: string;
+  cloudinaryResourceType: string;
+}
+
 interface BookmarkDetailDialogProps {
   bookmark: {
     id: string;
@@ -36,6 +47,11 @@ interface BookmarkDetailDialogProps {
     favorite: boolean;
     collections: {
       collection: Collection;
+    }[];
+    attachments: {
+      bookmarkId: string;
+      attachmentId: string;
+      attachment: AttachmentData;
     }[];
   } | null;
 
@@ -84,6 +100,9 @@ export function BookmarkDetailDialog({
 
   // Tracks whether the bookmark is currently being deleted.
   const [deleting, setDeleting] = useState(false);
+
+  const [showAttachmentUploader, setShowAttachmentUploader] = useState(false);
+  const [addingAttachment, setAddingAttachment] = useState(false);
 
   // Load the user's collections when the collection selector is opened.
   useEffect(() => {
@@ -255,6 +274,95 @@ export function BookmarkDetailDialog({
     }
   }
 
+  async function addAttachment(attachment: {
+    filename: string;
+    url: string;
+    fileType: string;
+    fileSize: number;
+    cloudinaryPublicId: string;
+    cloudinaryResourceType: string;
+  }) {
+    try {
+      setAddingAttachment(true);
+
+      const attachmentResponse = await fetch("/api/attachments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(attachment),
+      });
+
+      if (!attachmentResponse.ok) {
+        throw new Error("Failed to create attachment");
+      }
+
+      const createdAttachment = await attachmentResponse.json();
+
+      const relationshipResponse = await fetch(
+        `/api/bookmarks/${currentBookmark.id}/attachments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            attachmentId: createdAttachment.id,
+          }),
+        },
+      );
+
+      if (!relationshipResponse.ok) {
+        throw new Error("Failed to attach file to bookmark");
+      }
+
+      const updatedBookmark = {
+        ...currentBookmark,
+        attachments: [
+          ...currentBookmark.attachments,
+          {
+            bookmarkId: currentBookmark.id,
+            attachmentId: createdAttachment.id,
+            attachment: createdAttachment,
+          },
+        ],
+      };
+
+      onBookmarkUpdated?.(updatedBookmark);
+
+      setShowAttachmentUploader(false);
+    } catch (error) {
+      console.error("Error adding attachment:", error);
+    } finally {
+      setAddingAttachment(false);
+    }
+  }
+
+  async function removeAttachment(attachmentId: string) {
+    try {
+      const response = await fetch(
+        `/api/bookmarks/${currentBookmark.id}/attachments/${attachmentId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove attachment");
+      }
+
+      const updatedBookmark = {
+        ...currentBookmark,
+        attachments: currentBookmark.attachments.filter(
+          ({ attachment }) => attachment.id !== attachmentId,
+        ),
+      };
+
+      onBookmarkUpdated?.(updatedBookmark);
+    } catch (error) {
+      console.error("Error removing attachment:", error);
+    }
+  }
   async function deleteBookmark() {
     const confirmed = window.confirm(
       "Are you sure you want to delete this bookmark?",
@@ -585,6 +693,93 @@ export function BookmarkDetailDialog({
                   </button>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Attachments */}
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h3 className="text-sm font-medium text-foreground/90">
+                Attachments
+              </h3>
+
+              <button
+                type="button"
+                onClick={() => setShowAttachmentUploader((current) => !current)}
+                className="rounded-md px-1 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                {showAttachmentUploader ? "Cancel" : "+ Add"}
+              </button>
+            </div>
+
+            {showAttachmentUploader && (
+              <div className="mb-3 space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
+                <AttachmentUpload onUpload={addAttachment} />
+
+                {addingAttachment && (
+                  <p className="text-xs text-muted-foreground">
+                    Adding attachment...
+                  </p>
+                )}
+              </div>
+            )}
+
+            {bookmark.attachments.length > 0 ? (
+              <div className="space-y-2">
+                {bookmark.attachments.map(({ attachment }) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center gap-3 rounded-lg border border-border/60 bg-card/40 p-3 transition-colors hover:bg-[var(--chip-background)]"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-medium text-primary">
+                      {attachment.fileType.toLowerCase() === "pdf"
+                        ? "PDF"
+                        : "IMG"}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {attachment.filename}
+                      </p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.open(
+                          attachment.url,
+                          "_blank",
+                          "noopener,noreferrer",
+                        );
+                      }}
+                      aria-label={`Open ${attachment.filename}`}
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        removeAttachment(attachment.id);
+                      }}
+                      aria-label={`Remove ${attachment.filename}`}
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-destructive/20"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No attachments added.
+              </p>
             )}
           </div>
 

@@ -8,30 +8,31 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  clerkId   String       @unique
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
   name      String?
-  email     String       @unique
-  createdAt DateTime     @default(now())
-
+  email     String   @unique
+  createdAt DateTime @default(now())
+  
   collections Collection[]
-  bookmarks  Bookmark[]
+  bookmarks   Bookmark[]
+  attachments Attachment[]
 }
 
 model Collection {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   coverImage  String?
   userId      String
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime @default(now())
 
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookmarks BookmarkCollection[]
 }
 
 model Bookmark {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   url          String
   title        String
   description  String?
@@ -39,13 +40,14 @@ model Bookmark {
   favicon      String?
   previewImage String?
   notes        String?
-  favorite     Boolean    @default(false)
-  createdAt    DateTime   @default(now())
+  favorite     Boolean  @default(false)
+  createdAt    DateTime @default(now())
 
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   collections BookmarkCollection[]
+  attachments BookmarkAttachment[]
 }
 
 model BookmarkCollection {
@@ -55,6 +57,32 @@ model BookmarkCollection {
   bookmark   Bookmark   @relation(fields: [bookmarkId], references: [id], onDelete: Cascade)
   collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
-  @@id([bookmarkId, collectionId])
+  @@id([bookmarkId, collectionId]) //composite primary key
   @@index([collectionId])
+}
+
+model Attachment {
+  id                     String   @id @default(cuid())
+  filename               String
+  url                    String
+  fileType               String
+  fileSize               Int
+  cloudinaryPublicId     String
+  cloudinaryResourceType String
+  createdAt              DateTime @default(now())
+  userId                 String
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookmarks BookmarkAttachment[]
+}
+
+model BookmarkAttachment {
+  bookmarkId   String
+  attachmentId String
+
+  bookmark   Bookmark   @relation(fields: [bookmarkId], references: [id], onDelete: Cascade)
+  attachment Attachment @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+
+  @@id([bookmarkId, attachmentId])
+  @@index([attachmentId])
 }
